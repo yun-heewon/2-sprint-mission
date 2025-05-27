@@ -1,8 +1,9 @@
-const { object, string, size, is } = require('superstruct');
+const { object, string, size } = require('superstruct');
 const isEmail = require('isEmail');
 
 const CreateUser = object({
-    name: size(string(), 1, 30),
+    firstName: size(string(), 1, 30),
+    lastName: size(string(), 1, 30),
     email: isEmail(),
 });
 
