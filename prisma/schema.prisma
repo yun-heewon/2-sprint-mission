@@ -72,3 +72,12 @@ model ArticleComment {
   article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId Int
 }
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  filename  String
+  mimtype   String
+  size      Int
+  url       String
+  createdAt DateTime @default(now())
+}

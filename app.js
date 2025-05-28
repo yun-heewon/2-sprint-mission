@@ -9,6 +9,9 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var productsRouter = require('./routes/products');
 var articlesRouter = require('./routes/articles');
+var articleCommentsRouter = require('./routes/articleComments');
+var productCommentsRouter = require('./routes/productComments');
+var documentsRouter = require('./routes/documents');
 
 var app = express();
 
@@ -17,12 +20,15 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/products', productsRouter);
 app.use('/articles', articlesRouter);
+app.use('/articles/:articleId/comments', articleCommentsRouter);
+app.use('/products/:productId/comments', productCommentsRouter);
+app.use('/documents', documentsRouter);
+app.use('/documents/files', express.static('uploads'));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
