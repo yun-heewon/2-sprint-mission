@@ -69,7 +69,7 @@ router.post('/create', async (req, res, next) => {
     try {
         assert(req.body, CreateArticle);
         const { title, content } = req.body;
-        const userId = req.user.id;
+        const userId = Number(req.user.id);
 
         const article = await prisma.$transaction(async (tx) => {
             const article = await tx.article.create({
@@ -105,6 +105,7 @@ router.delete('/:id', async (req, res, next) => {
         await prisma.product.delete({
             where: { id },
         })
+        res.statusCode(204).send();
     } catch (error) {
         next(error);
     }

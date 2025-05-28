@@ -64,13 +64,12 @@ router.get('/list', async (req, res, next) => {
 
 
 // 상품 등록 API
-//추후에 이미지 파일 등록까지 추가할 예정
 // userId 고민해보기 
 router.post('/create', async (req, res, next) => {
     try {
         assert(req.body, CreateProduct);
         const { name, description, price, tags } = req.body;
-        const userId = req.user.id;
+        const userId = Number(req.user.id);
 
         const product = await prisma.$transaction(async (tx) => {
             const product = await tx.product.create({
@@ -106,6 +105,7 @@ router.delete('/:id', async (req, res, next) => {
         await prisma.product.delete({
             where: { id },
         })
+        res.statusCode(204).send();
     } catch (error) {
         next(error);
     }
