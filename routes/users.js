@@ -16,8 +16,9 @@ router.get('/list', async (req, res, next) => {
       take: parseInt(limit),
       select: { id: true, firstName: true, lastName: true, email: true, createdAt: true }
     });
-    res.status(200).send(users);
+    res.status(200).json(users);
   } catch (error) {
+    console.error('Error fetching users:', error);
     next(error);
   }
 }
@@ -32,12 +33,32 @@ router.post('/create', async (req, res, next) => {
     const user = await prisma.user.create({
       data: { firstName, lastName, email },
     })
-    res.status(201).send({ id: user.id });
+    res.status(201).json({ id: user.id });
 
   } catch (error) {
+    console.error('Error creating user:', error);
     next(error);
   }
 });
+
+// user 수정
+router.patch('/:id', async (req, res, next) => {
+  try {
+    assert(req.body, PatchUser);
+    const id = Number(req.params.id);
+    const { firstName, lastName, email } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id },
+      data: req.body,
+    });
+    res.status(200).json({ id: user.id });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    next(error);
+  }
+}
+);
 
 //user 삭제 
 router.delete('/:id', async (req, res, next) => {
@@ -46,7 +67,9 @@ router.delete('/:id', async (req, res, next) => {
     await prisma.user.delete({
       where: { id },
     })
+    res.status(204).json();
   } catch (error) {
+    console.error('Error deleting user:', error);
     next(error);
   }
 })

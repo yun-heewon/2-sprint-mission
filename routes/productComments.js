@@ -1,29 +1,84 @@
+var express = require('express');
+var router = express.Router();
 const { assert } = require("superstruct");
 const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-var router = express.Router();
-const express = require('express');
 const { CreateProductComment, PatchProductComment } = require('../dtos/comments.dto');
+
+
+// 댓글 목록 조회 API
+router.get('/list', async (req, res, next) => {
+    try {
+        // 페이지네이션 설정
+        const pageSize = 10;
+        const { lastId } = req.query;
+
+        const queryOptions = {
+            take: pageSize,
+            orderBy: { id: 'desc' },
+            select: { id: true, content: true, createdAt: true }
+        };
+
+        // lastId가 존재하면 커서 페이지네이션을 적용
+        if (lastId) {
+            const cursorId = Number(lastId);
+            queryOptions.cursor = { id: cursorId };
+            queryOptions.skip = 1;
+        };
+
+        // 댓글 목록 조회
+        const comments = await prisma.productcomment.findMany(queryOptions);
+
+        // 다음 페이지 여부 확인
+        const hasNextPage = comments.length === pageSize;
+
+        // 다음 페이지 있을 시 커서 설정
+        let nextCursor = null;
+        if (hasNextPage) {
+            nextCursor = comments[comments.length - 1].id;
+        };
+        res.status(200).json({
+            comments, nextCursor, hasNextPage
+        });
+    } catch (error) {
+        console.error('Error fetching comments:', error);
+        next(error);
+    }
+});
 
 // 제품 댓글 생성 API
 router.post('/create', async (req, res, next) => {
     try {
+        // 요청 본문 검증
         assert(req.body, CreateProductComment);
         const { content } = req.body;
+
+        // 사용자 ID와 제품 ID 추출 
         const userId = Number(req.user.id);
         const productId = Number(req.params.productId);
 
-        const comment = await prisma.productcomment.create({
-            data: { content, userId, productId },
+        const product = await prisma.product.findUnique({
+            where: { id: productId },
         });
-        res.status(201).send({ id: comment.id });
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // 제품 댓글 생성
+        const comment = await prisma.$transaction(async (tx) => {
+            const comment = await tx.productComment.create({
+                data: { content, userId, productId },
+            });
+            return comment;
+        });
+        res.status(201).json({ id: comment.id });
     }
     catch (error) {
+        console.error('Error creating comment:', error);
         next(error);
     }
-}
-);
+});
 
 // 제품 댓글 수정 API
 router.patch('/:id', async (req, res, next) => {
@@ -35,8 +90,9 @@ router.patch('/:id', async (req, res, next) => {
             where: { id },
             data: req.body,
         });
-        res.status(200).send(comment);
+        res.status(200).json(comment);
     } catch (error) {
+        console.error('Error updating comment:', error);
         next(error);
     };
 })
@@ -48,45 +104,12 @@ router.delete('/:id', async (req, res, next) => {
         await prisma.productcomment.delete({
             where: { id },
         });
-        res.statusCode(204).send()
+        res.status(204).json();
     } catch (error) {
+        console.error('Error deleting comment:', error);
         next(error);
     }
 });
 
-// 댓글 목록 조회 API
-router.get('/list', async (req, res, next) => {
-    try {
-        const pageSize = 10;
-        const { lastId } = req.query;
-
-        const queryOptions = {
-            take: pageSize,
-            orderBy: { id: 'desc' },
-            select: { id: true, content: true, createdAt: true }
-        };
-
-        if (lastId) {
-            const cursorId = Number(lastId);
-            queryOptions.cursor = { id: cursorId };
-            queryOptions.skip = 1;
-        };
-
-        const comments = await prisma.productcomment.findMany(queryOptions);
-
-        const hasNextPage = comments.length === pageSize;
-
-        let nextCursor = null;
-        if (hasNextPage) {
-            nextCursor = comments[comments.length - 1].id;
-        };
-        res.status(200).send({
-            comments, nextCursor, hasNextPage
-        });
-    } catch (error) {
-        console.error('Error fetching comments:', error);
-        next(error);
-    }
-});
 
 module.exports = router;

@@ -1,29 +1,11 @@
+var express = require('express');
+var router = express.Router();
 const { assert } = require("superstruct");
 const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-var router = express.Router();
-const express = require('express');
 const { CreateProduct, PatchProduct } = require('../dtos/products.dto');
 
-// 제품 ID를 파라미터로 받아 해당 제품의 상세 정보를 조회하는 API
-router.get('/:id', async (req, res, next) => {
-    try {
-        const id = Number(req.params.id);
-        const product = await prisma.product.findUnique({
-            where: { id },
-            select: { id: true, name: true, description: true, price: true, tags: true, createdAt: true }
-        });
-        if (!product) {
-            const error = new Error('Cannot find given product');
-            error.statusCode = 404;
-            return next(error)
-        }
-        res.status(200).json(product);
-    } catch (error) {
-        next(error);
-    }
-});
 
 
 /*name, description 필터링 기능을 포함한 제품 목록 조회 API,
@@ -56,20 +38,40 @@ router.get('/list', async (req, res, next) => {
             take: parseInt(limit),
             select: { id: true, name: true, price: true, createdAt: true }
         });
-        res.status(200).send(products);
+        res.status(200).json(products);
     } catch (error) {
+        console.error('Error fetching products:', error);
+        next(error);
+    }
+});
+
+// 제품 ID를 파라미터로 받아 해당 제품의 상세 정보를 조회하는 API
+router.get('/:id', async (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
+        const product = await prisma.product.findUnique({
+            where: { id },
+            select: { id: true, name: true, description: true, price: true, tags: true, createdAt: true }
+        });
+        if (!product) {
+            const error = new Error('Cannot find given product');
+            error.statusCode = 404;
+            return next(error)
+        }
+        res.status(200).json(product);
+    } catch (error) {
+        console.error('Error fetching product:', error);
         next(error);
     }
 });
 
 
-// 상품 등록 API
-// userId 고민해보기 
 router.post('/create', async (req, res, next) => {
     try {
         assert(req.body, CreateProduct);
-        const { name, description, price, tags } = req.body;
         const userId = Number(req.user.id);
+        const { name, description, price, tags } = req.body;
+
 
         const product = await prisma.$transaction(async (tx) => {
             const product = await tx.product.create({
@@ -77,8 +79,9 @@ router.post('/create', async (req, res, next) => {
             });
             return product;
         });
-        res.status(201).send({ id: product.id });
+        res.status(201).json({ id: product.id });
     } catch (error) {
+        console.error('Error creating product:', error);
         next(error);
     }
 });
@@ -92,8 +95,9 @@ router.patch('/:id', async (req, res, next) => {
             where: { id },
             data: req.body,
         });
-        res.status(200).send(product);
+        res.status(200).json(product);
     } catch (error) {
+        console.error('Error updating product:', error);
         next(error);
     }
 });
@@ -105,8 +109,9 @@ router.delete('/:id', async (req, res, next) => {
         await prisma.product.delete({
             where: { id },
         })
-        res.statusCode(204).send();
+        res.status(204).json();
     } catch (error) {
+        console.error('Error deleting product:', error);
         next(error);
     }
 })
