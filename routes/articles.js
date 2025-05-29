@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const { assert } = require("superstruct");
-const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
@@ -22,12 +21,15 @@ router.get('/list', async (req, res, next) => {
             orderBy = { createdAt: 'desc' };
     };
 
-    const where = title || content ? {
-        OR: [
-            { title: { contains: title || '', mode: 'insensitive' } },
-            { content: { contains: content || '', mode: 'insensitive' } }
-        ]
-    } : {};
+    //
+    const searchParams = [];
+    if (title) {
+        searchParams.push({ title: { contains: title, mode: 'insensitive' } });
+    }
+    if (content) {
+        searchParams.push({ content: { contains: content, mode: 'insensitive' } });
+    }
+    const where = searchParams.length > 0 ? { OR: searchParams } : {};
 
     try {
         const articles = await prisma.article.findMany({
@@ -62,13 +64,22 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
+
 //게시글 등록 API
 router.post('/create', async (req, res, next) => {
     try {
         assert(req.body, CreateArticle);
-        const userId = Number(req.user.id);
-        const { title, content } = req.body;
+        const { title, content, userId } = req.body;
 
+        // 사용자 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // 게시글 생성
         const article = await prisma.$transaction(async (tx) => {
             const article = await tx.article.create({
                 data: { title, content, userId },
@@ -81,6 +92,7 @@ router.post('/create', async (req, res, next) => {
         next(error);
     }
 });
+
 
 // 게시글 수정 API
 router.patch('/:id', async (req, res, next) => {

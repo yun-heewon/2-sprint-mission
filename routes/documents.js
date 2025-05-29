@@ -1,15 +1,26 @@
 var express = require('express');
 var router = express.Router();
-const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 var multer = require('multer');
 var path = require('path')
+var fs = require('fs');
 
 
 
 
-const upload = multer({ dest: 'uploads/' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+});
+
+const upload = multer({ storage: storage });
 
 router.get('/download/:id', async (req, res, next) => {
     try {
@@ -33,7 +44,7 @@ router.get('/download/:id', async (req, res, next) => {
     }
 });
 
-router.post('/files', upload.single('file'), async (req, res, next) => {
+router.post('/upload', upload.single('file'), async (req, res, next) => {
     try {
         if (!req.file) {
             return res.status(400).json('No file uploaded.');
@@ -44,7 +55,7 @@ router.post('/files', upload.single('file'), async (req, res, next) => {
                 filename: req.file.filename,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
-                url: `documents/files/${req.file.filename}`,
+                url: `/files/${req.file.filename}`,
             },
         });
         const path = `/files/${req.file.filename}`;
@@ -60,7 +71,25 @@ router.post('/files', upload.single('file'), async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
-        const document = await prisma.document.delete({
+
+        const docToDelete = await prisma.document.findUnique({
+            where: { id },
+        })
+
+        if (!docToDelete) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+
+        // 파일 시스템에서 파일 삭제
+        const filePath = path.join(__dirname, '../', 'uploads', docToDelete.filename);
+        fs.unlink(filePath, async (err) => {
+            if (err) {
+                console.error('Error deleting file:', err);
+                return next(err);
+            }
+        })
+        // 데이터베이스에서 문서 삭제
+        await prisma.document.delete({
             where: { id },
         }
         );

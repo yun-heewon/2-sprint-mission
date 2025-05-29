@@ -4,7 +4,6 @@ const { CreateUser } = require('../dtos/users.dto');
 const { assert } = require('superstruct');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const app = require('../app');
 
 
 // user list 조회
@@ -46,7 +45,6 @@ router.patch('/:id', async (req, res, next) => {
   try {
     assert(req.body, PatchUser);
     const id = Number(req.params.id);
-    const { firstName, lastName, email } = req.body;
 
     const user = await prisma.user.update({
       where: { id },

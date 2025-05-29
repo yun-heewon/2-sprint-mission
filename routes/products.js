@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const { assert } = require("superstruct");
-const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { CreateProduct, PatchProduct } = require('../dtos/products.dto');
@@ -23,12 +22,17 @@ router.get('/list', async (req, res, next) => {
             orderBy = { createdAt: 'desc' };
     };
 
-    const where = name || description ? {
-        OR: [
-            { name: { contains: name || '', mode: 'insensitive' } },
-            { description: { contains: description || '', mode: 'insensitive' } }
-        ]
-    } : {};
+    // name, description 필터링을 위한 조건 생성
+    const searchParams = [];
+
+    if (name) {
+        searchParams.push({ name: { contains: name, mode: 'insensitive' } });
+    }
+
+    if (description) {
+        searchParams.push({ description: { contains: description, mode: 'insensitive' } });
+    }
+    const where = searchParams.length > 0 ? { OR: searchParams } : {};
 
     try {
         const products = await prisma.product.findMany({
@@ -69,10 +73,17 @@ router.get('/:id', async (req, res, next) => {
 router.post('/create', async (req, res, next) => {
     try {
         assert(req.body, CreateProduct);
-        const userId = Number(req.user.id);
-        const { name, description, price, tags } = req.body;
+        const { name, description, price, tags, userId } = req.body;
 
+        // 사용자 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
+        // 제품 생성
         const product = await prisma.$transaction(async (tx) => {
             const product = await tx.product.create({
                 data: { name, description, price, tags, userId },

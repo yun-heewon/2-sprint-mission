@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const { assert } = require("superstruct");
-const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { CreateArticleComment, PatchArticleComment } = require('../dtos/comments.dto');
@@ -52,11 +51,8 @@ router.post('/create', async (req, res, next) => {
     try {
         // 요청 본문 검증
         assert(req.body, CreateArticleComment);
-        const { content } = req.body;
+        const { content, userId, articleId } = req.body;
 
-        // 사용자 ID와 게시글 ID 추출
-        const userId = Number(req.user.id);
-        const articleId = Number(req.params.articleId);
 
         // 게시글 존재 확인
         const article = await prisma.article.findUnique({
@@ -64,6 +60,14 @@ router.post('/create', async (req, res, next) => {
         });
         if (!article) {
             return res.status(404).json({ error: 'Article not found' });
+        };
+
+        // 사용자 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         };
 
         // 게시글 댓글 생성
@@ -87,6 +91,7 @@ router.patch('/:id', async (req, res, next) => {
         assert(req.body, PatchArticleComment);
 
         const id = Number(req.params.id);
+
         const comment = await prisma.articleComment.update({
             where: { id },
             data: req.body,

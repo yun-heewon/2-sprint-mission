@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const { assert } = require("superstruct");
-const app = require("../app");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { CreateProductComment, PatchProductComment } = require('../dtos/comments.dto');
@@ -52,17 +51,22 @@ router.post('/create', async (req, res, next) => {
     try {
         // 요청 본문 검증
         assert(req.body, CreateProductComment);
-        const { content } = req.body;
+        const { content, userId, productId } = req.body;
 
-        // 사용자 ID와 제품 ID 추출 
-        const userId = Number(req.user.id);
-        const productId = Number(req.params.productId);
-
+        // 제품 존재 확인
         const product = await prisma.product.findUnique({
             where: { id: productId },
         });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
+        }
+
+        // 사용자 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
         }
 
         // 제품 댓글 생성
