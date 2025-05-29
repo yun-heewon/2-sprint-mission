@@ -1,10 +1,10 @@
-const { object, number, string, partial } = require("superstruct");
+const { object, number, string, partial, array } = require("superstruct");
 
 const CreateProduct = object({
     name: string(),
     description: string(),
     price: number(),
-    tags: string(),
+    tags: array(string()),
     userId: number()
 });
 
