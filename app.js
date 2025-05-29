@@ -25,8 +25,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/products', productsRouter);
 app.use('/articles', articlesRouter);
-app.use('/articles/:articleId/comments', articleCommentsRouter);
-app.use('/products/:productId/comments', productCommentsRouter);
+app.use('/articles/comments', articleCommentsRouter);
+app.use('/products/comments', productCommentsRouter);
 app.use('/documents', documentsRouter);
 app.use('/files', express.static('uploads'));
 
