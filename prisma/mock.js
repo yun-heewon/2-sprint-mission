@@ -203,7 +203,7 @@ const ARTICLES = [
     ,
     {
         id: 3,
-        title: '중고 사기 조심하세요요',
+        title: '중고 사기 조심하세요',
         content: '얼마 전에 사기를 당했네요 다들 조심하세요.',
         createdAt: new Date('2023-01-04T00:02:00Z'),
         updatedAt: new Date('2023-01-04T00:02:00Z'),

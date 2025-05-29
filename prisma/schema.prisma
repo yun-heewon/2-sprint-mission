@@ -76,7 +76,7 @@ model ArticleComment {
 model Document {
   id        Int      @id @default(autoincrement())
   filename  String
-  mimtype   String
+  mimetype  String
   size      Int
   url       String
   createdAt DateTime @default(now())
