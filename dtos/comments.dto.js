@@ -1,11 +1,15 @@
-const { string, object, partial } = require("superstruct");
+const { string, object, partial, number } = require("superstruct");
 
 const CreateArticleComment = object({
     content: string(),
+    userId: number(),
+    articleId: number()
 });
 
 const CreateProductComment = object({
     content: string(),
+    userId: number(),
+    productId: number()
 });
 
 const PatchArticleComment = partial(CreateArticleComment);

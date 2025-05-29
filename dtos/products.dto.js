@@ -5,6 +5,7 @@ const CreateProduct = object({
     description: string(),
     price: number(),
     tags: string(),
+    userId: number()
 });
 
 const PatchProduct = partial(CreateProduct)
