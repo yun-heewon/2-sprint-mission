@@ -28,7 +28,7 @@ router.get('/list', async (req, res, next) => {
         };
 
         // 댓글 목록 조회
-        const comments = await prisma.productcomment.findMany(queryOptions);
+        const comments = await prisma.productComment.findMany(queryOptions);
 
         // 다음 페이지 여부 확인
         const hasNextPage = comments.length === pageSize;
@@ -86,7 +86,7 @@ router.patch('/:id', async (req, res, next) => {
         assert(req.body, PatchProductComment);
 
         const id = Number(req.params.id);
-        const comment = await prisma.productcomment.update({
+        const comment = await prisma.productComment.update({
             where: { id },
             data: req.body,
         });
@@ -101,7 +101,7 @@ router.patch('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
-        await prisma.productcomment.delete({
+        await prisma.productComment.delete({
             where: { id },
         });
         res.status(204).json();
