@@ -16,15 +16,17 @@ datasource db {
 
 model User {
   id              Int              @id @default(autoincrement())
-  firstName       String
-  lastName        String
   email           String           @unique
+  nickname        String
+  document        Document         @relation(fields: [documentId], references: [id])
+  password        String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   products        Product[]
   articles        Article[]
   productComments ProductComment[]
   articleComments ArticleComment[]
+  documentId      Int
 }
 
 model Product {
@@ -80,4 +82,5 @@ model Document {
   size      Int
   url       String
   createdAt DateTime @default(now())
+  User      User[]
 }
