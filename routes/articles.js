@@ -114,7 +114,7 @@ router.patch('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
-        await prisma.product.delete({
+        await prisma.article.delete({
             where: { id },
         })
         res.status(204).json();
