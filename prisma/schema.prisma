@@ -17,7 +17,7 @@ datasource db {
 model User {
   id              Int              @id @default(autoincrement())
   email           String           @unique
-  nickname        String
+  nickname        String           @unique
   image           String?
   password        String
   createdAt       DateTime         @default(now())
