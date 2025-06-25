@@ -18,7 +18,7 @@ model User {
   id              Int              @id @default(autoincrement())
   email           String           @unique
   nickname        String
-  document        Document         @relation(fields: [documentId], references: [id])
+  image           String?
   password        String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -26,7 +26,6 @@ model User {
   articles        Article[]
   productComments ProductComment[]
   articleComments ArticleComment[]
-  documentId      Int
 }
 
 model Product {
@@ -82,5 +81,4 @@ model Document {
   size      Int
   url       String
   createdAt DateTime @default(now())
-  User      User[]
 }
