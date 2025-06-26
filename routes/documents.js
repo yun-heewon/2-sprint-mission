@@ -5,9 +5,11 @@ const prisma = new PrismaClient();
 var multer = require('multer');
 var path = require('path')
 var fs = require('fs');
+const passport = require('passport');
 
-
-
+router.get('/download/:id', getDocument);
+router.post('/upload', upload.single('file'), createDocument);
+router.delete('/:id', deleteDocument);
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -22,7 +24,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-router.get('/download/:id', async (req, res, next) => {
+async function getDocument(req, res, next) {
     try {
         const id = Number(req.params.id);
         const document = await prisma.document.findUnique({
@@ -32,43 +34,50 @@ router.get('/download/:id', async (req, res, next) => {
             return res.status(404).json({ error: 'Document not found' });
         }
         const filePath = path.join(__dirname, '../', 'uploads', document.filename);
+        if (!fs.existsSync(filePath)) {
+            console.error(`File not found on disk: ${filePath}`);
+            return res.status(500).json({ error: 'File data mismatch: File not found on server.' });
+        }
         res.download(filePath, document.filename, (err) => {
             if (err) {
                 console.error('Error downloading file:', err);
-                return next(err);
             }
         });
     } catch (error) {
         console.error('Error fetching documents:', error);
         next(error);
     }
-});
+}
 
-router.post('/upload', upload.single('file'), async (req, res, next) => {
+async function createDocument(req, res, next) {
     try {
         if (!req.file) {
             return res.status(400).json('No file uploaded.');
         }
+
+        const fileUrl = `/files/${req.file.filename}`;
 
         const file = await prisma.document.create({
             data: {
                 filename: req.file.filename,
                 mimetype: req.file.mimetype,
                 size: req.file.size,
-                url: `/files/${req.file.filename}`,
+                url: fileUrl,
             },
         });
-        const path = `/files/${req.file.filename}`;
-        res.status(201).json({ path, fileId: file.id });
-
+        res.status(201).json({ url: fileUrl, fileId: file.id });
     }
     catch (error) {
-        console.error('Error uploading file:', error);
+        console.error('Error uploading file or saving document record:', error);
+        if (req.file && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+            console.warn(`Rolled back uploaded file due to error: ${req.file.path}`);
+        }
         next(error);
-    };
-});
+    }
+}
 
-router.delete('/:id', async (req, res, next) => {
+async function deleteDocument(req, res, next) {
     try {
         const id = Number(req.params.id);
 
@@ -82,18 +91,22 @@ router.delete('/:id', async (req, res, next) => {
 
         // 파일 시스템에서 파일 삭제
         const filePath = path.join(__dirname, '../', 'uploads', docToDelete.filename);
-        fs.unlink(filePath, async (err) => {
-            if (err) {
-                console.error('Error deleting file:', err);
-                return next(err);
+        try {
+            if (fs.existsSync(filePath)) {
+                await fs.promises.unlink(filePath);
+                console.log(`File successfully deleted from filesystem: ${filePath}`);
+            } else {
+                console.warn(`File not found on disk, skipping filesystem delete: ${filePath}`);
             }
-        })
+        } catch (fileDeleteError) {
+            console.error(`Error deleting file from filesystem (${filePath}):`, fileDeleteError);
+            return next(fileDeleteError);
+        }
         // 데이터베이스에서 문서 삭제
         await prisma.document.delete({
             where: { id },
-        }
-        );
-        res.status(204).json();
+        });
+        res.status(204).send();
     } catch (error) {
         console.error('Error deleting document:', error);
 
@@ -102,6 +115,7 @@ router.delete('/:id', async (req, res, next) => {
         }
         next(error);
     }
-});
+}
+
 
 module.exports = router;
