@@ -8,27 +8,16 @@ const prisma = new PrismaClient();
 const { passport } = require('../lib/passport/index.js');
 const { generateTokens } = require('../lib/token.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
+const fs = require('fs');
+const { upload } = require('./documents.js');
 
 
 router.get('/me', passport.authenticate('access-token', { session: false }), getUser);
-router.post('/register', register);
+router.post('/register', upload.single('image'), register);
 router.post('/login', passport.authenticate('local', { session: false }), login);
 router.post('/refresh', passport.authenticate('refresh-token', { session: false }), refreshTokens);
 router.patch('/me', passport.authenticate('access-token', { session: false }), patchUser);
-
-//user 삭제 
-router.delete('/:id', async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    await prisma.user.delete({
-      where: { id },
-    })
-    res.status(204).json();
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    next(error);
-  }
-})
+router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteUser);
 
 //정보 조회 
 async function getUser(req, res, next) {
@@ -49,27 +38,46 @@ async function register(req, res, next) {
   try {
     assert(req.body, CreateUser);
   } catch (error) {
-    console.error(error);
+    console.error('Validation Error:', error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+      console.warn(`Rolled back uploaded file due to validation error: ${req.file.path}`);
+    }
     return res.status(400).json({ message: 'Invalid registration data', errors: error.message });
   }
 
   const { email, nickname, password } = req.body;
+  let imageFilename = null;
+
+  if (req.file) {
+    imageFilename = req.file.filename;
+  }
 
   try {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt)
     const user = await prisma.user.create({
-      data: { email, nickname, password: hashedPassword }
+      data: { email, nickname, password: hashedPassword, image: imageFilename },
+      select: { id: true, email: true, nickname: true, image: true, createdAt: true }
     });
-
-    const { password: _, ...userWithoutPassword } = user;
-    res.status(201).json(userWithoutPassword)
+    const profileImageUrl = imageFilename ? `/uploads/${imageFilename}` : null;
+    res.status(201).json({
+      message: 'User registered successfully',
+      user: user,
+      profileImageUrl: profileImageUrl
+    });
   } catch (error) {
     console.error('Failed to register user', error);
 
     if (error.code === 'P2002') {
       return res.status(409).json({ message: 'Email or User nickname already exist! Please Change to something else ' });
     }
+
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+      console.warn(`Rolled back uploaded file due to unexpected error: ${req.file.path}`);
+    }
+
     next(error);
   }
 }
@@ -116,6 +124,27 @@ async function patchUser(req, res) {
     res.status(500).json({ message: 'Failed to update user information.' });
   }
 }
+
+//user 삭제 
+async function deleteUser(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const user = req.user;
+
+    if (id !== user.id) {
+      return res.status(403).json({ message: 'You are not authorized to delete this account.' });
+    }
+
+    await prisma.user.delete({
+      where: { id },
+    })
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    next(error);
+  }
+}
+
 
 //브라우저 쿠키에 토큰 저장 
 function setTokenCookies(res, accessToken, refreshToken) {
