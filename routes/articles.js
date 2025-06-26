@@ -4,8 +4,35 @@ const { assert } = require("superstruct");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
+var bcrypt = require('bcrypt');
+const { passport } = require('../lib/passport/index.js');
+const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
 
 
+router.post('/create', passport.authenticate('access-token', { session: false }), createArticle);
+
+async function createArticle(req, res, next) {
+    try {
+        assert(req.body, CreateArticle);
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+    }
+
+    const { title, content } = req.body;
+    const user = req.user;
+
+    try {
+        const post = await prisma.article.create({
+            data: { title, content, userId: user.id },
+            select: { title: true, content: true, createdAt: true }
+        });
+        res.status(201).json(post);
+    } catch (error) {
+        console.error('Failed to create article:', error);
+        next(error);
+    }
+}
 /*title, content 필터링 기능을 포함한 제품 목록 조회 API,
 offset 방식의 페이지네이션, 
 최신순으로 정렬 기능*/
