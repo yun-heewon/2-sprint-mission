@@ -10,6 +10,7 @@ const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/
 
 
 router.post('/create', passport.authenticate('access-token', { session: false }), createArticle);
+router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateArticle);
 
 async function createArticle(req, res, next) {
     try {
@@ -30,6 +31,42 @@ async function createArticle(req, res, next) {
         res.status(201).json(post);
     } catch (error) {
         console.error('Failed to create article:', error);
+        next(error);
+    }
+}
+
+async function updateArticle(req, res, next) {
+    try {
+        assert(req.body, PatchArticle);
+    } catch (error) {
+        console.error(error);
+        return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+    }
+
+    const { id } = req.params;
+    const user = req.user;
+
+    try {
+        const article = await prisma.article.findUnique({
+            where: { id: Number(id) }
+        });
+
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        if (article.userId !== user.id) {
+            return res.status(403).json({ message: 'You are not authorized to update this article.' });
+        }
+
+        const updatedArticle = await prisma.article.update({
+            where: { id: Number(id) },
+            data: req.body,
+            select: { title: true, content: true, updatedAt: true }
+        })
+        res.status(200).json(updatedArticle);
+    } catch (error) {
+        console.error('Failed to update article:', error);
         next(error);
     }
 }
