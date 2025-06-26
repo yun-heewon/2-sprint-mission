@@ -8,6 +8,7 @@ const { CreateProduct, PatchProduct } = require('../dtos/products.dto');
 router.post('/create', passport.authenticate('access-token', { session: false }), createProduct);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateProduct);
 router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteProduct);
+router.get('/my-product', passport.authenticate('access-token', { session: false }), getProductList)
 
 //로그인한 사용자의 상품 등록
 async function createProduct(req, res, next) {
@@ -95,66 +96,34 @@ async function deleteProduct(req, res, next) {
     }
 }
 
-/*name, description 필터링 기능을 포함한 제품 목록 조회 API,
-offset 방식의 페이지네이션, 
-최신순으로 정렬 기능*/
-router.get('/list', async (req, res, next) => {
-    let orderBy;
-    const { offset = 0, limit = 10, order = 'newest', name, description } = req.query;
-    switch (order) {
-        case 'oldest':
-            orderBy = { createdAt: 'asc' };
-            break;
-        case 'newest':
-        default:
-            orderBy = { createdAt: 'desc' };
-    };
-
-    // name, description 필터링을 위한 조건 생성
-    const searchParams = [];
-
-    if (name) {
-        searchParams.push({ name: { contains: name, mode: 'insensitive' } });
-    }
-
-    if (description) {
-        searchParams.push({ description: { contains: description, mode: 'insensitive' } });
-    }
-    const where = searchParams.length > 0 ? { OR: searchParams } : {};
-
+//로그인한 사용자가 작성한 상품 목록
+async function getProductList(req, res, next) {
+    const user = req.user;
     try {
+        const { offset = 0, limit = 10, order = 'newest' } = req.query;
+        let orderBy;
+        switch (order) {
+            case 'oldest':
+                orderBy = { createdAt: 'asc' };
+                break;
+            case 'newest':
+            default:
+                orderBy = { createdAt: 'desc' };
+        };
+
         const products = await prisma.product.findMany({
-            where,
+            where: { userId: user.id },
+            select: { id: true, name: true, price: true, createdAt: true },
             orderBy,
             skip: parseInt(offset),
             take: parseInt(limit),
-            select: { id: true, name: true, price: true, createdAt: true }
         });
+
         res.status(200).json(products);
     } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error(`Error fetching user's products:`, error);
         next(error);
     }
-});
-
-// 제품 ID를 파라미터로 받아 해당 제품의 상세 정보를 조회하는 API
-router.get('/:id', async (req, res, next) => {
-    try {
-        const id = Number(req.params.id);
-        const product = await prisma.product.findUnique({
-            where: { id },
-            select: { id: true, name: true, description: true, price: true, tags: true, createdAt: true }
-        });
-        if (!product) {
-            const error = new Error('Cannot find given product');
-            error.statusCode = 404;
-            return next(error)
-        }
-        res.status(200).json(product);
-    } catch (error) {
-        console.error('Error fetching product:', error);
-        next(error);
-    }
-});
+};
 
 module.exports = router;
