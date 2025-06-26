@@ -5,7 +5,6 @@ const prisma = new PrismaClient();
 var multer = require('multer');
 var path = require('path')
 var fs = require('fs');
-const passport = require('passport');
 
 router.get('/download/:id', getDocument);
 router.post('/upload', upload.single('file'), createDocument);
@@ -118,4 +117,11 @@ async function deleteDocument(req, res, next) {
 }
 
 
-module.exports = router;
+module.exports = {
+    router,
+    upload,
+    storage,
+    getDocument,
+    createDocument,
+    deleteDocument
+};
