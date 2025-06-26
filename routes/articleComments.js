@@ -20,7 +20,7 @@ async function createComment(req, res, next) {
     }
 
     const user = req.user;
-    const articleId = Number(req.params.id);
+    const articleId = Number(req.params.articleId);
     try {
         const article = await prisma.article.findUnique({
             where: { id: articleId },
@@ -36,7 +36,7 @@ async function createComment(req, res, next) {
         });
         res.status(201).json(comment);
     } catch (error) {
-        console.error('Failed to create comment:', error);
+        console.error('Failed to create article comment:', error);
         next(error);
     }
 }
@@ -73,7 +73,7 @@ async function updateComment(req, res, next) {
         });
         res.status(201).json(updatedComment);
     } catch (error) {
-        console.error('Failed to create comment:', error);
+        console.error('Failed to update article comment:', error);
         next(error);
     }
 }
@@ -98,7 +98,7 @@ async function deleteComment(req, res, next) {
         })
         res.status(204).send();
     } catch (error) {
-        console.error('Failed to delete comment:', error);
+        console.error('Failed to delete article comment:', error);
         next(error);
     }
 }
