@@ -1,16 +1,14 @@
 var express = require('express');
+const { passport } = require('../lib/passport/index.js');
 var router = express.Router();
 const { assert } = require("superstruct");
+const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
-var bcrypt = require('bcrypt');
-const { passport } = require('../lib/passport/index.js');
-const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
-
 
 router.post('/create', passport.authenticate('access-token', { session: false }), createArticle);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateArticle);
+router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteArticle);
 
 async function createArticle(req, res, next) {
     try {
@@ -70,6 +68,31 @@ async function updateArticle(req, res, next) {
         next(error);
     }
 }
+
+async function deleteArticle(req, res, next) {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        const article = await prisma.article.findUnique({ where: { id: Number(id) } });
+        if (!article) {
+            return res.status(404).json({ message: 'Article not found' });
+        }
+
+        if (article.userId !== user.id) {
+            return res.status(403).json({ message: 'You are not authorized to delete this article.' });
+        }
+
+        await prisma.article.delete({
+            where: { id: Number(id) },
+        });
+        res.status(204).send();
+    } catch (error) {
+        console.error('Failed to delete article:', error);
+        next(error);
+    }
+}
+
 /*title, content 필터링 기능을 포함한 제품 목록 조회 API,
 offset 방식의 페이지네이션, 
 최신순으로 정렬 기능*/
@@ -128,65 +151,6 @@ router.get('/:id', async (req, res, next) => {
     }
 });
 
-
-//게시글 등록 API
-router.post('/create', async (req, res, next) => {
-    try {
-        assert(req.body, CreateArticle);
-        const { title, content, userId } = req.body;
-
-        // 사용자 존재 확인
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-        });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        // 게시글 생성
-        const article = await prisma.$transaction(async (tx) => {
-            const article = await tx.article.create({
-                data: { title, content, userId },
-            });
-            return article;
-        });
-        res.status(201).json({ id: article.id });
-    } catch (error) {
-        console.error('Error creating article:', error);
-        next(error);
-    }
-});
-
-
-// 게시글 수정 API
-router.patch('/:id', async (req, res, next) => {
-    try {
-        assert(req.body, PatchArticle);
-        const id = Number(req.params.id);
-        const article = await prisma.article.update({
-            where: { id },
-            data: req.body,
-        });
-        res.status(200).json(article);
-    } catch (error) {
-        console.error('Error updating article:', error);
-        next(error);
-    }
-});
-
-// 게시글 삭제 API
-router.delete('/:id', async (req, res, next) => {
-    try {
-        const id = Number(req.params.id);
-        await prisma.article.delete({
-            where: { id },
-        })
-        res.status(204).json();
-    } catch (error) {
-        console.error('Error deleting article:', error);
-        next(error);
-    }
-})
 
 
 module.exports = router;
