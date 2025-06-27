@@ -5,23 +5,13 @@ const prisma = new PrismaClient();
 var multer = require('multer');
 var path = require('path')
 var fs = require('fs');
+const upload = require('../lib/upload.js');
 
 router.get('/download/:id', getDocument);
 router.post('/upload', upload.single('file'), createDocument);
 router.delete('/:id', deleteDocument);
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        const ext = path.extname(file.originalname);
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + ext);
-    }
-});
 
-const upload = multer({ storage: storage });
 
 async function getDocument(req, res, next) {
     try {
@@ -117,11 +107,4 @@ async function deleteDocument(req, res, next) {
 }
 
 
-module.exports = {
-    router,
-    upload,
-    storage,
-    getDocument,
-    createDocument,
-    deleteDocument
-};
+module.exports = router;
