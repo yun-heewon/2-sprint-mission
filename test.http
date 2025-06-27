@@ -1,0 +1,133 @@
+POST http://localhost:3000/users/register
+Content-Type: application/json
+
+{
+  "email": "testuser3@sample.com",
+  "nickname": "testuser4",
+  "password": "123123",
+}
+
+###
+
+POST http://localhost:3000/users/login
+Content-Type: application/json
+
+{
+  "email": "testuser5@sample.com",
+  "password": "123123"
+}
+
+###
+Post http://localhost:3000/users/logout
+
+###
+
+GET http://localhost:3000/posts
+
+### 
+
+POST http://localhost:3000/products/create
+Content-Type: application/json
+
+{
+  "name": "고양이 캣타워",
+    "description": "이사가서 팝니다",
+    "price": 100000,
+    "tags": ["고양이", "캣타워", "원목"]
+}
+###
+
+PATCH http://localhost:3000/products/update/3
+Content-Type: application/json
+
+{
+  "description": "펜슬입니다. 필요없어서 팔아요 5000원 가격인하",
+    "price": 50000
+}
+
+###
+Post http://localhost:3000/products/comments/1/create
+Content-Type: application/json
+
+{
+"content": "제가 구매하고싶어요"
+}
+
+###
+Post http://localhost:3000/articles/comments/5/create
+Content-Type: application/json
+
+{
+"content": "코딩에는 맥북이죠"
+}
+
+
+###
+PATCH http://localhost:3000/articles/comments/2/update
+Content-Type: application/json
+
+{
+"content": "반가워요"
+}
+
+
+###
+PATCH http://localhost:3000/products/comments/2/update
+Content-Type: application/json
+
+{
+"content": "제가 구매하겠습니다"
+}
+
+###
+POST http://localhost:3000/articles/create
+Content-Type: application/json
+
+{
+  "title": "노트북 추천 부탁드려요",
+  "content": "코딩 배워보려고 하는데 노트북 추천해주세요"
+}
+
+###
+PATCH  http://localhost:3000/articles/update/2
+Content-Type: application/json
+
+{
+  "title": "가입인사입니댜"
+}
+
+
+###
+POST http://localhost:3000/likes/articles/1
+
+
+###
+POST http://localhost:3000/likes/products/1
+
+###
+GET  http://localhost:3000/articles/my-article
+
+###
+GET  http://localhost:3000/products/my-product
+
+###
+GET  http://localhost:3000/products/me/liked-products
+
+###
+GET  http://localhost:3000/articles
+
+###
+
+DELETE http://localhost:3000/articles/3
+
+
+###
+
+DELETE http://localhost:3000/products/4
+
+###
+DELETE http://localhost:3000/products/comments/2
+
+###
+DELETE http://localhost:3000/articles/comments/2
+
