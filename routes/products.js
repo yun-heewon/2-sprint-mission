@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+const passport = require('../lib/passport/index.js');
 const { assert } = require("superstruct");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
@@ -8,7 +9,10 @@ const { CreateProduct, PatchProduct } = require('../dtos/products.dto');
 router.post('/create', passport.authenticate('access-token', { session: false }), createProduct);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateProduct);
 router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteProduct);
-router.get('/my-product', passport.authenticate('access-token', { session: false }), getProductList)
+router.get('/my-product', passport.authenticate('access-token', { session: false }), getMyProductList)
+router.get('/', passport.authenticate('access-token', { session: false }), getProductList)
+router.get('/me/liked-products', passport.authenticate('access-token', { session: false }), getLikedProductList)
+
 
 //로그인한 사용자의 상품 등록
 async function createProduct(req, res, next) {
@@ -97,7 +101,7 @@ async function deleteProduct(req, res, next) {
 }
 
 //로그인한 사용자가 작성한 상품 목록
-async function getProductList(req, res, next) {
+async function getMyProductList(req, res, next) {
     const user = req.user;
     try {
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
@@ -125,5 +129,90 @@ async function getProductList(req, res, next) {
         next(error);
     }
 };
+
+// 상품 목록 조회(isLike 추가)
+async function getProductList(req, res, next) {
+    try {
+        const userId = req.user.id
+        let orderBy;
+        const { offset = 0, limit = 10, order = 'newest' } = req.query;
+        switch (order) {
+            case 'oldest':
+                orderBy = { createdAt: 'asc' };
+                break;
+            case 'newest':
+            default:
+                orderBy = { createdAt: 'desc' };
+        };
+
+        const productsList = await prisma.product.findMany({
+            orderBy,
+            skip: parseInt(offset),
+            take: parseInt(limit),
+            select: { id: true, name: true, price: true, createdAt: true },
+        })
+
+        const userLikes = await prisma.productLike.findMany({
+            where: { userId: userId },
+            select: { productId: true },
+        })
+        const likedProductIds = new Set(userLikes.map(like => like.productId));
+
+        const productLiked = productsList.map(product => ({
+            ...product,
+            isLiked: likedProductIds.has(product.id),
+        }));
+        return res.status(200).json(productLiked);
+    } catch (error) {
+        console.error('Error fetching product list with like status:', error);
+        next(error);
+    }
+}
+
+
+//사용자가 좋아요한 상품 목록
+async function getLikedProductList(req, res, next) {
+    try {
+        const userId = req.user.id;
+        let orderBy;
+        const { offset = 0, limit = 10, order = 'newest' } = req.query;
+        switch (order) {
+            case 'oldest':
+                orderBy = { createdAt: 'asc' };
+                break;
+            case 'newest':
+            default:
+                orderBy = { createdAt: 'desc' };
+        };
+
+        const likeProducts = await prisma.productLike.findMany({
+            where: { userId: userId },
+            orderBy,
+            skip: parseInt(offset),
+            take: parseInt(limit),
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        price: true,
+                        likeCount: true,
+                        createdAt: true
+                    }
+                }
+            }
+        });
+
+        const products = likeProducts.map(item => ({
+            ...item.product,
+            isLiked: true,
+        }));
+        res.status(200).json(products);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        next(error);
+    }
+};
+
 
 module.exports = router;

@@ -5,11 +5,11 @@ const { CreateUser, PatchUser } = require('../dtos/users.dto');
 const { assert } = require('superstruct');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { passport } = require('../lib/passport/index.js');
+const passport = require('../lib/passport/index.js');
 const { generateTokens } = require('../lib/token.js');
 const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
 const fs = require('fs');
-const { upload } = require('./documents.js');
+const upload = require('../lib/upload.js');
 
 
 router.get('/me', passport.authenticate('access-token', { session: false }), getUser);
@@ -18,6 +18,7 @@ router.post('/login', passport.authenticate('local', { session: false }), login)
 router.post('/refresh', passport.authenticate('refresh-token', { session: false }), refreshTokens);
 router.patch('/me', passport.authenticate('access-token', { session: false }), patchUser);
 router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteUser);
+router.post('/logout', logout);
 
 //정보 조회 
 async function getUser(req, res, next) {
@@ -91,6 +92,7 @@ async function login(req, res) {
   const { accessToken, refreshToken } = generateTokens(req.user.id)
   setTokenCookies(res, accessToken, refreshToken);
   res.status(200).json();
+
 }
 
 //회원정보 수정 
@@ -145,6 +147,10 @@ async function deleteUser(req, res, next) {
   }
 }
 
+function logout(req, res) {
+  clearTokenCookies(res);
+  res.status(200).send();
+}
 
 //브라우저 쿠키에 토큰 저장 
 function setTokenCookies(res, accessToken, refreshToken) {
@@ -168,5 +174,12 @@ async function refreshTokens(req, res) {
   setTokenCookies(res, accessToken, newRefreshToken);
   res.status(200).send();
 };
+
+function clearTokenCookies(res) {
+  res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
+  res.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
+}
+
+
 
 module.exports = router;

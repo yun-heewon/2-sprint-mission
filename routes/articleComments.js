@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const { passport } = require('../lib/passport/index.js');
+const passport = require('../lib/passport/index.js');
 const { assert } = require("superstruct");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();

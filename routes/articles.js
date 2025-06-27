@@ -1,5 +1,5 @@
 var express = require('express');
-const { passport } = require('../lib/passport/index.js');
+const passport = require('../lib/passport/index.js');
 var router = express.Router();
 const { assert } = require("superstruct");
 const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
@@ -9,7 +9,8 @@ const prisma = new PrismaClient();
 router.post('/create', passport.authenticate('access-token', { session: false }), createArticle);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateArticle);
 router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteArticle);
-router.get('/my-article', passport.authenticate('access-token', { session: false }), getArticleList)
+router.get('/my-article', passport.authenticate('access-token', { session: false }), getMyArticleList)
+router.get('/', passport.authenticate('access-token', { session: false }), getArticleList)
 
 //로그인한 사용자의 게시글 등록
 async function createArticle(req, res, next) {
@@ -98,7 +99,7 @@ async function deleteArticle(req, res, next) {
 }
 
 //로그인한 사용자가 작성한 게시글 목록
-async function getArticleList(req, res, next) {
+async function getMyArticleList(req, res, next) {
     const user = req.user;
     try {
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
@@ -126,5 +127,91 @@ async function getArticleList(req, res, next) {
         next(error);
     }
 };
+
+//게시글 목록조회 (isLiked 추가)
+async function getArticleList(req, res, next) {
+    try {
+        const userId = req.user.id
+        let orderBy;
+        const { offset = 0, limit = 10, order = 'newest' } = req.query;
+        switch (order) {
+            case 'oldest':
+                orderBy = { createdAt: 'asc' };
+                break;
+            case 'newest':
+            default:
+                orderBy = { createdAt: 'desc' };
+        };
+
+        const articlesList = await prisma.article.findMany({
+            orderBy,
+            skip: parseInt(offset),
+            take: parseInt(limit),
+            select: { id: true, title: true, content: true, createdAt: true },
+        })
+
+        const userLikes = await prisma.articleLike.findMany({
+            where: { userId: userId },
+            select: { articleId: true },
+        })
+        const likedArticleIds = new Set(userLikes.map(like => like.articleId));
+
+        const articleLiked = articlesList.map(article => ({
+            ...article,
+            isLiked: likedArticleIds.has(article.id),
+        }));
+        return res.status(200).json(articleLiked);
+    } catch (error) {
+        console.error('Error fetching article list with like status:', error);
+        next(error);
+    }
+}
+
+// async function getArticleList(req, res, next) {
+//     try {
+//         const userId = req.user.id;
+//         let orderBy;
+//         const { offset = 0, limit = 10, order = 'newest' } = req.query;
+//         switch (order) {
+//             case 'oldest':
+//                 orderBy = { createdAt: 'asc' };
+//                 break;
+//             case 'newest':
+//             default:
+//                 orderBy = { createdAt: 'desc' };
+//         };
+
+
+
+//         const likeArticles = await prisma.articleLike.findMany({
+//             where: { userId: userId },
+//             orderBy,
+//             skip: parseInt(offset),
+//             take: parseInt(limit),
+//             include: {
+//                 article: {
+//                     select: {
+//                         id: true,
+//                         title: true,
+//                         content: true,
+//                         likeCount: true,
+//                         createdAt: true
+//                     }
+//                 }
+//             }
+//         });
+
+//         const articles = likeArticles.map(item => ({
+//             ...item.article,
+//             isLiked: true,
+//         }));
+//         res.status(200).json(articles);
+//     } catch (error) {
+//         console.error('Error fetching articles:', error);
+//         next(error);
+//     }
+// };
+
+
 
 module.exports = router;
