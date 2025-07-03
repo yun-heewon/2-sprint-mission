@@ -1,17 +1,16 @@
-const { object, string, size, partial, define, optional } = require('superstruct');
-const isEmail = require('is-email');
+import { object, string, size, partial, define, optional } from 'superstruct';
+import isEmail from 'is-email';
 
-var Email = define('Email', isEmail);
+const Email = define<string>('Email', (value: unknown): value is string => {
+    return typeof value === 'string' && isEmail(value);
+});
 
-const CreateUser = object({
+export const CreateUser = object({
     email: Email,
     nickname: size(string(), 1, 15),
     password: string(),
     image: optional(string())
 });
 
-const PatchUser = partial(CreateUser);
+export const PatchUser = partial(CreateUser);
 
-module.exports = {
-    CreateUser, PatchUser
-};

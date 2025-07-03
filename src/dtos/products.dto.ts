@@ -1,15 +1,10 @@
-const { object, number, string, partial, array } = require("superstruct");
+import { object, number, string, partial, array } from "superstruct";
 
-const CreateProduct = object({
+export const CreateProduct = object({
     name: string(),
     description: string(),
     price: number(),
     tags: array(string()),
 });
 
-const PatchProduct = partial(CreateProduct)
-
-
-module.exports = {
-    CreateProduct, PatchProduct
-};
+export const PatchProduct = partial(CreateProduct)

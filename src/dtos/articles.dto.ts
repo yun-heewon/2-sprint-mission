@@ -1,12 +1,9 @@
-const { object, string, partial, size } = require("superstruct");
+import { object, string, partial, size } from "superstruct";
 
-const CreateArticle = object({
+export const CreateArticle = object({
     title: size(string(), 1, 30),
     content: string()
 });
 
-const PatchArticle = partial(CreateArticle);
+export const PatchArticle = partial(CreateArticle);
 
-module.exports = {
-    CreateArticle, PatchArticle
-};
