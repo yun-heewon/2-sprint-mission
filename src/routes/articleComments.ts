@@ -1,22 +1,26 @@
-var express = require('express');
-var router = express.Router();
-const passport = require('../lib/passport/index.js');
-const { assert } = require("superstruct");
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const { ArticleComment } = require('../dtos/comments.dto');
+import express, { NextFunction, Request, Response } from 'express';
+const router = express.Router();
+import passport from '../lib/passport/index';
+import { assert } from "superstruct";
+import prisma from '../lib/prisma';
+import { ArticleComment } from '../dtos/comments.dto';
 
 router.post('/:articleId/create', passport.authenticate('access-token', { session: false }), createComment);
 router.patch('/:commentId/update', passport.authenticate('access-token', { session: false }), updateComment);
 router.delete('/:commentId', passport.authenticate('access-token', { session: false }), deleteComment);
 
 //로그인한 사용자의 댓글 생성
-async function createComment(req, res, next) {
+async function createComment(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         assert(req.body, ArticleComment);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
+        }
     }
 
     const user = req.user;
@@ -42,12 +46,17 @@ async function createComment(req, res, next) {
 }
 
 //로그인한 사용자의 댓글 수정
-async function updateComment(req, res, next) {
+async function updateComment(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         assert(req.body, ArticleComment);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
+        }
     }
 
 
@@ -79,7 +88,10 @@ async function updateComment(req, res, next) {
 }
 
 //로그인한 사용자의 댓글 삭제
-async function deleteComment(req, res, next) {
+async function deleteComment(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const commentId = Number(req.params.commentId)
         const user = req.user;
@@ -103,4 +115,4 @@ async function deleteComment(req, res, next) {
     }
 }
 
-module.exports = router;
+export default router;

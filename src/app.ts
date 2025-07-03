@@ -1,21 +1,21 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var cors = require('cors');
-const passport = require('./src/routes/lib/passport/index.js');
+import createError from 'http-errors';
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import logger from 'morgan';
+import cors from 'cors';
+import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import passport from './lib/passport/index';
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var productsRouter = require('./routes/products');
-var articlesRouter = require('./routes/articles');
-var articleCommentsRouter = require('./routes/articleComments');
-var productCommentsRouter = require('./routes/productComments');
-var documentsRouter = require('./routes/documents');
-var likeRouter = require('./routes/like');
+import indexRouter from './routes/index';
+import usersRouter from './routes/users';
+import productsRouter from './routes/products';
+import articlesRouter from './routes/articles';
+import articleCommentsRouter from './routes/articleComments';
+import productCommentsRouter from './routes/productComments';
+import documentsRouter from './routes/documents';
+import likeRouter from './routes/like';
 
-var app = express();
+const app = express();
 
 app.use(cors());
 app.use(logger('dev'));
@@ -35,12 +35,12 @@ app.use('/likes', likeRouter);
 app.use('/files', express.static('uploads'));
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) {
   const errorResponse = {
     message: err.message,
     stack: req.app.get('env') === 'development' ? err.stack : undefined,

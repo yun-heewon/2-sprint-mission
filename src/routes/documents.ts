@@ -1,11 +1,11 @@
-var express = require('express');
-var router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-var multer = require('multer');
-var path = require('path')
-var fs = require('fs');
-const upload = require('../lib/upload.js');
+import express, { NextFunction, Request, Response } from 'express';
+const router = express.Router();
+import prisma from '../lib/prisma';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import upload from '../lib/upload';
+import { Prisma } from '@prisma/client';
 
 router.get('/download/:id', getDocument);
 router.post('/upload', upload.single('file'), createDocument);
@@ -13,7 +13,7 @@ router.delete('/:id', deleteDocument);
 
 
 
-async function getDocument(req, res, next) {
+async function getDocument(req: Request, res: Response, next: NextFunction) {
     try {
         const id = Number(req.params.id);
         const document = await prisma.document.findUnique({
@@ -38,7 +38,7 @@ async function getDocument(req, res, next) {
     }
 }
 
-async function createDocument(req, res, next) {
+async function createDocument(req: Request, res: Response, next: NextFunction) {
     try {
         if (!req.file) {
             return res.status(400).json('No file uploaded.');
@@ -66,7 +66,7 @@ async function createDocument(req, res, next) {
     }
 }
 
-async function deleteDocument(req, res, next) {
+async function deleteDocument(req: Request, res: Response, next: NextFunction) {
     try {
         const id = Number(req.params.id);
 
@@ -98,13 +98,13 @@ async function deleteDocument(req, res, next) {
         res.status(204).send();
     } catch (error) {
         console.error('Error deleting document:', error);
-
-        if (error.code === 'P2025') {
-            return res.status(404).json({ error: 'Document not found' });
+        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === 'P2025') {
+                return res.status(404).json({ error: 'Document not found' });
+            }
         }
         next(error);
     }
 }
 
-
-module.exports = router;
+export default router;

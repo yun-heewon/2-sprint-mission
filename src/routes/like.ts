@@ -1,13 +1,16 @@
-const express = require('express');
-const passport = require('../lib/passport/index.js');
+import express, { NextFunction, Request, Response } from 'express';
+import passport from '../lib/passport';
+import prisma from '../lib/prisma';
+import { Prisma } from '@prisma/client';
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
 router.post('/products/:productId', passport.authenticate('access-token', { session: false }), uploadLikeProduct);
 router.post('/articles/:articleId', passport.authenticate('access-token', { session: false }), uploadLikeArticle);
 
-async function uploadLikeProduct(req, res, next) {
+async function uploadLikeProduct(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const productId = Number(req.params.productId)
         const userId = req.user.id;
@@ -80,7 +83,7 @@ async function uploadLikeProduct(req, res, next) {
         }
     } catch (error) {
         //상품이 없을 때 오류처리
-        if (error.code === 'P2025') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
             return res.status(404).json({ message: 'Product not found.' });
         }
 
@@ -89,7 +92,10 @@ async function uploadLikeProduct(req, res, next) {
     }
 };
 
-async function uploadLikeArticle(req, res, next) {
+async function uploadLikeArticle(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const articleId = Number(req.params.articleId)
         const userId = req.user.id;
@@ -158,7 +164,7 @@ async function uploadLikeArticle(req, res, next) {
             });
         }
     } catch (error) {
-        if (error.code === 'P2025') {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
             return res.status(404).json({ message: 'Article not found.' });
         }
 
@@ -167,4 +173,4 @@ async function uploadLikeArticle(req, res, next) {
     }
 };
 
-module.exports = router;
+export default router;

@@ -1,10 +1,10 @@
-var express = require('express');
-var router = express.Router();
-const passport = require('../lib/passport/index.js');
-const { assert } = require("superstruct");
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const { CreateProduct, PatchProduct } = require('../dtos/products.dto');
+import express, { NextFunction, Request, Response } from 'express';
+const router = express.Router();
+import passport from '../lib/passport/index';
+import { assert } from "superstruct";
+import { CreateProduct, PatchProduct } from '../dtos/products.dto';
+import prisma from '../lib/prisma';
+import { Prisma } from "@prisma/client";
 
 router.post('/create', passport.authenticate('access-token', { session: false }), createProduct);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateProduct);
@@ -15,12 +15,18 @@ router.get('/me/liked-products', passport.authenticate('access-token', { session
 
 
 //로그인한 사용자의 상품 등록
-async function createProduct(req, res, next) {
+async function createProduct(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         assert(req.body, CreateProduct);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Product data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Product data', errors: error.message });
+        }
     }
 
     const { name, description, price, tags } = req.body;
@@ -39,12 +45,18 @@ async function createProduct(req, res, next) {
 }
 
 //로그인한 사용자의 상품 수정
-async function updateProduct(req, res, next) {
+async function updateProduct(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         assert(req.body, PatchProduct);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Product data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Product data', errors: error.message });
+        }
     }
 
     const { id } = req.params;
@@ -76,7 +88,11 @@ async function updateProduct(req, res, next) {
 }
 
 //로그인한 사용자의 상품 삭제
-async function deleteProduct(req, res, next) {
+async function deleteProduct(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const { id } = req.params;
         const user = req.user;
@@ -101,11 +117,14 @@ async function deleteProduct(req, res, next) {
 }
 
 //로그인한 사용자가 작성한 상품 목록
-async function getMyProductList(req, res, next) {
+async function getMyProductList(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     const user = req.user;
     try {
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
-        let orderBy;
+        let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (order) {
             case 'oldest':
                 orderBy = { createdAt: 'asc' };
@@ -119,8 +138,8 @@ async function getMyProductList(req, res, next) {
             where: { userId: user.id },
             select: { id: true, name: true, price: true, createdAt: true },
             orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
+            skip: parseInt(offset as string),
+            take: parseInt(limit as string),
         });
 
         res.status(200).json(products);
@@ -131,10 +150,13 @@ async function getMyProductList(req, res, next) {
 };
 
 // 상품 목록 조회(isLike 추가)
-async function getProductList(req, res, next) {
+async function getProductList(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const userId = req.user.id
-        let orderBy;
+        let orderBy: Prisma.ProductOrderByWithRelationInput;
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
         switch (order) {
             case 'oldest':
@@ -147,8 +169,8 @@ async function getProductList(req, res, next) {
 
         const productsList = await prisma.product.findMany({
             orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
+            skip: parseInt(offset as string),
+            take: parseInt(limit as string),
             select: { id: true, name: true, price: true, createdAt: true },
         })
 
@@ -171,10 +193,14 @@ async function getProductList(req, res, next) {
 
 
 //사용자가 좋아요한 상품 목록
-async function getLikedProductList(req, res, next) {
+async function getLikedProductList(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     try {
         const userId = req.user.id;
-        let orderBy;
+        let orderBy: Prisma.ProductLikeOrderByWithRelationInput;
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
         switch (order) {
             case 'oldest':
@@ -188,8 +214,8 @@ async function getLikedProductList(req, res, next) {
         const likeProducts = await prisma.productLike.findMany({
             where: { userId: userId },
             orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
+            skip: parseInt(offset as string),
+            take: parseInt(limit as string),
             include: {
                 product: {
                     select: {
@@ -214,5 +240,4 @@ async function getLikedProductList(req, res, next) {
     }
 };
 
-
-module.exports = router;
+export default router;

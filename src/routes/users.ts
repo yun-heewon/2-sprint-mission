@@ -1,15 +1,15 @@
-var express = require('express');
-var router = express.Router();
-var bcrypt = require('bcrypt');
-const { CreateUser, PatchUser } = require('../dtos/users.dto');
-const { assert } = require('superstruct');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const passport = require('../lib/passport/index.js');
-const { generateTokens } = require('../lib/token.js');
-const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
-const fs = require('fs');
-const upload = require('../lib/upload.js');
+import express, { NextFunction, Request, Response } from 'express';
+const router = express.Router();
+import bcrypt from 'bcrypt';
+import { CreateUser, PatchUser } from '../dtos/users.dto';
+import { assert } from 'superstruct';
+import prisma from '../lib/prisma.js';
+import passport from '../lib/passport/index';
+import { generateTokens } from '../lib/token';
+import { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } from '../lib/constants.js';
+import fs from 'fs';
+import upload from '../lib/upload.js';
+import { Prisma } from '@prisma/client';
 
 
 router.get('/me', passport.authenticate('access-token', { session: false }), getUser);
@@ -21,8 +21,12 @@ router.delete('/:id', passport.authenticate('access-token', { session: false }),
 router.post('/logout', logout);
 
 //정보 조회 
-async function getUser(req, res, next) {
+async function getUser(req: Request, res: Response, next: NextFunction) {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     const users = await prisma.user.findUnique({
       where: { id: req.user.id },
       select: { id: true, email: true, nickname: true, createdAt: true }
@@ -35,7 +39,7 @@ async function getUser(req, res, next) {
 }
 
 //회원가입 
-async function register(req, res, next) {
+async function register(req: Request, res: Response, next: NextFunction) {
   try {
     assert(req.body, CreateUser);
   } catch (error) {
@@ -44,7 +48,9 @@ async function register(req, res, next) {
       fs.unlinkSync(req.file.path);
       console.warn(`Rolled back uploaded file due to validation error: ${req.file.path}`);
     }
-    return res.status(400).json({ message: 'Invalid registration data', errors: error.message });
+    if (error instanceof Error) {
+      return res.status(400).json({ message: 'Invalid registration data', errors: error.message });
+    }
   }
 
   const { email, nickname, password } = req.body;
@@ -70,7 +76,8 @@ async function register(req, res, next) {
   } catch (error) {
     console.error('Failed to register user', error);
 
-    if (error.code === 'P2002') {
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return res.status(409).json({ message: 'Email or User nickname already exist! Please Change to something else ' });
     }
 
@@ -84,7 +91,7 @@ async function register(req, res, next) {
 }
 
 //로그인
-async function login(req, res) {
+async function login(req: Request, res: Response) {
   if (!req.user) {
     return res.status(401).json({ message: 'Unauthorized' })
   }
@@ -96,12 +103,17 @@ async function login(req, res) {
 }
 
 //회원정보 수정 
-async function patchUser(req, res) {
+async function patchUser(req: Request, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
   const loggedInUser = req.user.id
   try {
     assert(req.body, PatchUser);
   } catch (error) {
-    return res.status(400).json({ message: 'Invalid update data', errors: erro.message });
+    if (error instanceof Error) {
+      return res.status(400).json({ message: 'Invalid update data', errors: error.message });
+    }
   }
 
   if (req.body.password) {
@@ -120,7 +132,7 @@ async function patchUser(req, res) {
   } catch (error) {
     console.error('Failed to update user', error);
 
-    if (error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       return res.status(409).json({ message: 'Email or User nickname already exist! Please Change to something else ' });
     }
     res.status(500).json({ message: 'Failed to update user information.' });
@@ -128,8 +140,12 @@ async function patchUser(req, res) {
 }
 
 //user 삭제 
-async function deleteUser(req, res, next) {
+async function deleteUser(req: Request, res: Response, next: NextFunction) {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
     const id = Number(req.params.id);
     const user = req.user;
 
@@ -147,13 +163,13 @@ async function deleteUser(req, res, next) {
   }
 }
 
-function logout(req, res) {
+function logout(req: Request, res: Response) {
   clearTokenCookies(res);
   res.status(200).send();
 }
 
 //브라우저 쿠키에 토큰 저장 
-function setTokenCookies(res, accessToken, refreshToken) {
+function setTokenCookies(res: Response, accessToken: string, refreshToken: string) {
   res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
     httpOnly: true,
     maxAge: 1 * 60 * 60 * 1000,
@@ -166,7 +182,10 @@ function setTokenCookies(res, accessToken, refreshToken) {
 }
 
 //만료 토큰 갱신 
-async function refreshTokens(req, res) {
+async function refreshTokens(req: Request, res: Response) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
   const user = req.user;
   const { accessToken, refreshToken: newRefreshToken } = generateTokens(
     user.id
@@ -175,11 +194,11 @@ async function refreshTokens(req, res) {
   res.status(200).send();
 };
 
-function clearTokenCookies(res) {
+function clearTokenCookies(res: Response) {
   res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
   res.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
 }
 
 
 
-module.exports = router;
+export default router;

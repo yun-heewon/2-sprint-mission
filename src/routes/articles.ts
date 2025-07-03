@@ -1,10 +1,11 @@
-var express = require('express');
-const passport = require('../lib/passport/index.js');
-var router = express.Router();
-const { assert } = require("superstruct");
-const { CreateArticle, PatchArticle } = require('../dtos/articles.dto');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+import express, { NextFunction, Request, Response } from 'express';
+import passport from '../lib/passport/index';
+const router = express.Router();
+import { assert } from "superstruct";
+import { CreateArticle, PatchArticle } from '../dtos/articles.dto';
+import prisma from '../lib/prisma';
+import { Prisma } from "@prisma/client";
+
 
 router.post('/create', passport.authenticate('access-token', { session: false }), createArticle);
 router.patch('/update/:id', passport.authenticate('access-token', { session: false }), updateArticle);
@@ -13,12 +14,17 @@ router.get('/my-article', passport.authenticate('access-token', { session: false
 router.get('/', passport.authenticate('access-token', { session: false }), getArticleList)
 
 //로그인한 사용자의 게시글 등록
-async function createArticle(req, res, next) {
+async function createArticle(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         assert(req.body, CreateArticle);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+        }
     }
 
     const { title, content } = req.body;
@@ -37,12 +43,17 @@ async function createArticle(req, res, next) {
 }
 
 //로그인한 사용자의 게시글 수정
-async function updateArticle(req, res, next) {
+async function updateArticle(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         assert(req.body, PatchArticle);
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+        if (error instanceof Error) {
+            console.error(error);
+            return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+        }
     }
 
     const { id } = req.params;
@@ -74,7 +85,10 @@ async function updateArticle(req, res, next) {
 }
 
 //로그인한 사용자의 게시글 삭제
-async function deleteArticle(req, res, next) {
+async function deleteArticle(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const { id } = req.params;
         const user = req.user;
@@ -99,11 +113,14 @@ async function deleteArticle(req, res, next) {
 }
 
 //로그인한 사용자가 작성한 게시글 목록
-async function getMyArticleList(req, res, next) {
+async function getMyArticleList(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     const user = req.user;
     try {
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
-        let orderBy;
+        let orderBy: Prisma.ArticleOrderByWithRelationInput;
         switch (order) {
             case 'oldest':
                 orderBy = { createdAt: 'asc' };
@@ -117,8 +134,8 @@ async function getMyArticleList(req, res, next) {
             where: { userId: user.id },
             select: { id: true, title: true, content: true, createdAt: true },
             orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
+            skip: parseInt(offset as string),
+            take: parseInt(limit as string),
         });
 
         res.status(200).json(articles);
@@ -129,10 +146,13 @@ async function getMyArticleList(req, res, next) {
 };
 
 //게시글 목록조회 (isLiked 추가)
-async function getArticleList(req, res, next) {
+async function getArticleList(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const userId = req.user.id
-        let orderBy;
+        let orderBy: Prisma.ArticleOrderByWithRelationInput;
         const { offset = 0, limit = 10, order = 'newest' } = req.query;
         switch (order) {
             case 'oldest':
@@ -145,8 +165,8 @@ async function getArticleList(req, res, next) {
 
         const articlesList = await prisma.article.findMany({
             orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
+            skip: parseInt(offset as string),
+            take: parseInt(limit as string),
             select: { id: true, title: true, content: true, createdAt: true },
         })
 
@@ -167,51 +187,4 @@ async function getArticleList(req, res, next) {
     }
 }
 
-// async function getArticleList(req, res, next) {
-//     try {
-//         const userId = req.user.id;
-//         let orderBy;
-//         const { offset = 0, limit = 10, order = 'newest' } = req.query;
-//         switch (order) {
-//             case 'oldest':
-//                 orderBy = { createdAt: 'asc' };
-//                 break;
-//             case 'newest':
-//             default:
-//                 orderBy = { createdAt: 'desc' };
-//         };
-
-
-
-//         const likeArticles = await prisma.articleLike.findMany({
-//             where: { userId: userId },
-//             orderBy,
-//             skip: parseInt(offset),
-//             take: parseInt(limit),
-//             include: {
-//                 article: {
-//                     select: {
-//                         id: true,
-//                         title: true,
-//                         content: true,
-//                         likeCount: true,
-//                         createdAt: true
-//                     }
-//                 }
-//             }
-//         });
-
-//         const articles = likeArticles.map(item => ({
-//             ...item.article,
-//             isLiked: true,
-//         }));
-//         res.status(200).json(articles);
-//     } catch (error) {
-//         console.error('Error fetching articles:', error);
-//         next(error);
-//     }
-// };
-
-
-
-module.exports = router;
+export default router;
