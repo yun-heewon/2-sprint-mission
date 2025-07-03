@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
-const passport = require('./lib/passport/index.js');
+const passport = require('./src/routes/lib/passport/index.js');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
