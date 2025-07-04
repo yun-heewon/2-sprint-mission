@@ -2,11 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { CreateUser, PatchUser } from '../dtos/users.dto';
 import { assert } from 'superstruct';
-import prisma from '../lib/prisma.js';
-import { generateTokens } from '../lib/token';
+import prisma from '../lib/prisma';
+import { generateTokens, setTokenCookies, clearTokenCookies } from '../lib/token';
 import fs from 'fs';
 import { Prisma } from '@prisma/client';
-import { setTokenCookies, clearTokenCookies } from '../lib/token.js';
+
 
 
 //정보 조회 
