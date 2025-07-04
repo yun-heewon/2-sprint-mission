@@ -8,4 +8,10 @@ export interface User {
     password?: string;
 }
 
+export interface HttpError extends Error {
+    status?: number;
+    statusCode?: number;
+    expose?: boolean;
+}
+
 export type UpdateUser = Partial<User>;
