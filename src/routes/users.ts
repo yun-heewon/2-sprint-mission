@@ -1,9 +1,9 @@
 import express from 'express';
 const router = express.Router();
 import passport from '../lib/passport/index';
-import upload from '../lib/upload.js';
+import upload from '../lib/upload';
 import { getUser, register, login, patchUser, deleteUser, logout } from '../controllers/userController';
-import { refreshTokens } from '../lib/token.js';
+import { refreshTokens } from '../lib/token';
 
 router.get('/me', passport.authenticate('access-token', { session: false }), getUser);
 router.post('/register', upload.single('image'), register);
