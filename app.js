@@ -49,7 +49,6 @@ app.use(function (err, req, res, next) {
 
 });
 
-app.listen(3001, () => console.log('Server Started'));
+app.listen(3000, () => console.log('Server Started'));
 
 module.exports = app;
-

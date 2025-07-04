@@ -141,7 +141,7 @@ async function deleteUser(req, res, next) {
       where: { id },
     })
     res.status(204).send();
-  } catch (error) {
+} catch (error) {
     console.error('Error deleting user:', error);
     next(error);
   }
@@ -179,7 +179,6 @@ function clearTokenCookies(res) {
   res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
   res.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
 }
-
 
 
 module.exports = router;
