@@ -2,36 +2,36 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser6@sample.com",
-  "nickname": "testuser6",
+  "email": "testuser7@sample.com",
+  "nickname": "testuser7",
   "password": "123123"
 }
 
 ###
 
-POST http://localhost:3000/users/login
+POST http://localhost:3001/users/login
 Content-Type: application/json
 
 {
-  "email": "testuser5@sample.com",
+  "email": "testuser1@sample.com",
   "password": "123123"
 }
 
 ###
-Post http://localhost:3000/users/logout
+Post http://localhost:3001/users/logout
 
 ###
 
-GET http://localhost:3000/posts
+GET http://localhost:3001/articles
 
 ### 
 
-POST http://localhost:3000/products/create
+POST http://localhost:3001/products/create
 Content-Type: application/json
 
 {
-  "name": "고양이 캣타워",
-    "description": "이사가서 팝니다",
+  "name": "고양이 캣타워 원목",
+    "description": "구매해주세요 제발",
     "price": 100000,
     "tags": ["고양이", "캣타워", "원목"]
 }
@@ -98,7 +98,7 @@ Content-Type: application/json
 
 
 ###
-POST http://localhost:3000/likes/articles/1
+POST http://localhost:3001/likes/articles/1
 
 
 ###
