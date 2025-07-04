@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ArticleComment, ProductComment } from '../dtos/comments.dto';
+import { ArticleComment } from '../dtos/comments.dto';
 import { assert } from "superstruct";
 import prisma from '../lib/prisma';
 
