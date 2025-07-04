@@ -3,7 +3,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import cors from 'cors';
-import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import passport from './lib/passport/index';
 
 import indexRouter from './routes/index';
@@ -17,7 +17,12 @@ import likeRouter from './routes/like';
 
 const app = express();
 
-app.use(cors());
+app.use(cors(
+  {
+    origin: 'http://localhost:3001',
+    credentials: true,
+  }
+));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(passport.initialize());
@@ -40,7 +45,7 @@ app.use(function (req: Request, res: Response, next: NextFunction) {
 });
 
 // error handler
-app.use(function (err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) {
+app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
   const errorResponse = {
     message: err.message,
     stack: req.app.get('env') === 'development' ? err.stack : undefined,
@@ -49,7 +54,7 @@ app.use(function (err: ErrorRequestHandler, req: Request, res: Response, next: N
 
 });
 
-app.listen(3001, () => console.log('Server Started'));
+app.listen(3000, () => console.log('Server Started'));
 
 module.exports = app;
 
