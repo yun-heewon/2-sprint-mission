@@ -8,4 +8,8 @@ declare global {
             user?: User;
         }
     }
+    interface Error {
+        status?: number;
+        code?: string;
+    }
 };
