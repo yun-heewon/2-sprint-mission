@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { CreateUser, PatchUser } from '../dtos/users.dto';
 import { assert } from 'superstruct';
