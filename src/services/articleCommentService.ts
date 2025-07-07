@@ -36,6 +36,11 @@ export class ArticleCommentService {
 
     async updateArticleComment(userId: number, articleCommentId: number, updateComment: Prisma.ArticleCommentUpdateInput) {
 
+        const user = await userReporitory.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         const articleComment = await articleCommentRepository.findById(articleCommentId);
         if (!articleComment) {
             throw new Error('Article comment not found');
@@ -61,7 +66,7 @@ export class ArticleCommentService {
         }
 
         if (articleComment.userId !== userId) {
-            throw new Error('You are not authorized to delete this article comment. ')
+            throw new Error('You are not authorized to delete this article comment.')
         }
 
         await articleCommentRepository.delete(articleCommentId);
