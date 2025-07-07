@@ -5,14 +5,14 @@ import userReporitory from "../repositories/userReporitory";
 
 export class ArticleCommentService {
     async createArticleComment(userId: number, articleId: number, commentData: { content: string }) {
+        const user = await userReporitory.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         const article = await articleReporitory.findById(articleId);
         if (!article) {
             throw new Error('Article not found');
-        }
-
-        const user = await userReporitory.findById(userId);
-        if (user) {
-            throw new Error('User not found');
         }
 
         if (!commentData.content || commentData.content.trim().length === 0) {

@@ -14,7 +14,7 @@ export async function createArticleComment(req: Request, res: Response, next: Ne
         assert(req.body, ArticleComment);
 
         const user = req.user.id;
-        const articleId = Number(req.params.id);
+        const articleId = Number(req.params.articleId);
         const { content } = req.body;
 
         const newArticleComment = await articleCommentService.createArticleComment(user, articleId, { content });
@@ -35,14 +35,11 @@ export async function updateArticleComment(req: Request, res: Response, next: Ne
 
         assert(req.body, ArticleComment);
 
-
         const user = req.user.id;
         const commentId = Number(req.params.commentId);
         const { content } = req.body;
 
-
         const updatedComment = await articleCommentService.updateArticleComment(user, commentId, { content });
-
         res.status(200).json(updatedComment);
     } catch (error) {
         console.error('Failed to update article comment:', error);
