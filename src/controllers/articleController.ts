@@ -3,101 +3,68 @@ import { assert } from "superstruct";
 import { CreateArticle, PatchArticle } from '../dtos/articles.dto';
 import prisma from '../lib/prisma';
 import { Prisma } from "@prisma/client";
+import articleService from '../services/articleService';
 
 //로그인한 사용자의 게시글 등록
 
 export async function createArticle(req: Request, res: Response, next: NextFunction) {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
     try {
-        assert(req.body, CreateArticle);
-    } catch (error) {
-        if (error instanceof Error) {
-            console.error(error);
-            return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
-    }
 
-    const { title, content } = req.body;
-    const user = req.user;
+        assert(req.body, CreateArticle);
 
-    try {
-        const post = await prisma.article.create({
-            data: { title, content, userId: user.id },
-            select: { title: true, content: true, createdAt: true }
-        });
-        res.status(201).json(post);
+        const { title, content } = req.body;
+        const userId = req.user.id;
+
+        const newArticle = await articleService.createArticle(userId, { title, content });
+
+        res.status(201).json({ message: 'Article created successfully', article: newArticle });
     } catch (error) {
         console.error('Failed to create article:', error);
+        if (error instanceof Error && error.message.includes('Validation Error')) {
+            return res.status(400).json({ message: 'Invalid article data', errors: error.message });
+        };
         next(error);
     }
 }
 
 //로그인한 사용자의 게시글 수정
 export async function updateArticle(req: Request, res: Response, next: NextFunction) {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
     try {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
         assert(req.body, PatchArticle);
+
+        const articleId = Number(req.params.id);
+        const user = req.user.id
+        const updateData = req.body;
+
+        const updatedArticle = await articleService.updateArticle(articleId, user, updateData);
+
+        res.status(200).json({ message: 'Article updated successfully!', article: updatedArticle });
     } catch (error) {
-        if (error instanceof Error) {
-            console.error(error);
-            return res.status(400).json({ message: 'Invalid Acticle data', errors: error.message });
-        }
-    }
-
-    const { id } = req.params;
-    const user = req.user;
-
-    try {
-        const article = await prisma.article.findUnique({
-            where: { id: Number(id) }
-        });
-
-        if (!article) {
-            return res.status(404).json({ message: 'Article not found' });
-        }
-
-        if (article.userId !== user.id) {
-            return res.status(403).json({ message: 'You are not authorized to update this article.' });
-        }
-
-        const updatedArticle = await prisma.article.update({
-            where: { id: Number(id) },
-            data: req.body,
-            select: { title: true, content: true, updatedAt: true }
-        })
-        res.status(200).json(updatedArticle);
-    } catch (error) {
-        console.error('Failed to update article:', error);
+        console.error('Error updating article:', error)
         next(error);
     }
 }
 
 //로그인한 사용자의 게시글 삭제
 export async function deleteArticle(req: Request, res: Response, next: NextFunction) {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
     try {
-        const { id } = req.params;
-        const user = req.user;
-
-        const article = await prisma.article.findUnique({ where: { id: Number(id) } });
-        if (!article) {
-            return res.status(404).json({ message: 'Article not found' });
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        if (article.userId !== user.id) {
-            return res.status(403).json({ message: 'You are not authorized to delete this article.' });
-        }
+        const articleId = Number(req.params.id);
+        const user = req.user.id;
 
-        await prisma.article.delete({
-            where: { id: Number(id) },
-        });
+        await articleService.deleteArticle(user, articleId);
         res.status(204).send();
+
     } catch (error) {
         console.error('Failed to delete article:', error);
         next(error);
@@ -106,31 +73,20 @@ export async function deleteArticle(req: Request, res: Response, next: NextFunct
 
 //로그인한 사용자가 작성한 게시글 목록
 export async function getMyArticleList(req: Request, res: Response, next: NextFunction) {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-    const user = req.user;
     try {
-        const { offset = 0, limit = 10, order = 'newest' } = req.query;
-        let orderBy: Prisma.ArticleOrderByWithRelationInput;
-        switch (order) {
-            case 'oldest':
-                orderBy = { createdAt: 'asc' };
-                break;
-            case 'newest':
-            default:
-                orderBy = { createdAt: 'desc' };
-        };
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
-        const articles = await prisma.article.findMany({
-            where: { userId: user.id },
-            select: { id: true, title: true, content: true, createdAt: true },
-            orderBy,
-            skip: parseInt(offset as string),
-            take: parseInt(limit as string),
-        });
+        const user = req.user.id;
 
+        const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+        const order = (req.query.order as 'newest' | 'oldest') || 'newest';
+
+        const articles = await articleService.myArticles(user, { offset, limit, order });
         res.status(200).json(articles);
+
     } catch (error) {
         console.error(`Error fetching user's articles:`, error);
         next(error);
@@ -139,40 +95,20 @@ export async function getMyArticleList(req: Request, res: Response, next: NextFu
 
 //게시글 목록조회 (isLiked 추가)
 export async function getArticleList(req: Request, res: Response, next: NextFunction) {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
     try {
-        const userId = req.user.id
-        let orderBy: Prisma.ArticleOrderByWithRelationInput;
-        const { offset = 0, limit = 10, order = 'newest' } = req.query;
-        switch (order) {
-            case 'oldest':
-                orderBy = { createdAt: 'asc' };
-                break;
-            case 'newest':
-            default:
-                orderBy = { createdAt: 'desc' };
-        };
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
-        const articlesList = await prisma.article.findMany({
-            orderBy,
-            skip: parseInt(offset as string),
-            take: parseInt(limit as string),
-            select: { id: true, title: true, content: true, createdAt: true },
-        })
+        const user = req.user.id;
 
-        const userLikes = await prisma.articleLike.findMany({
-            where: { userId: userId },
-            select: { articleId: true },
-        })
-        const likedArticleIds = new Set(userLikes.map(like => like.articleId));
+        const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+        const order = (req.query.order as 'newest' | 'oldest') || 'newest';
 
-        const articleLiked = articlesList.map(article => ({
-            ...article,
-            isLiked: likedArticleIds.has(article.id),
-        }));
-        return res.status(200).json(articleLiked);
+        const articles = await articleService.getArticleList(user, { offset, limit, order });
+        res.status(200).json(articles);
+
     } catch (error) {
         console.error('Error fetching article list with like status:', error);
         next(error);
