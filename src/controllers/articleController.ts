@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { assert } from "superstruct";
 import { CreateArticle, PatchArticle } from '../dtos/articles.dto';
-import prisma from '../lib/prisma';
-import { Prisma } from "@prisma/client";
 import articleService from '../services/articleService';
 
 //로그인한 사용자의 게시글 등록
@@ -23,9 +21,6 @@ export async function createArticle(req: Request, res: Response, next: NextFunct
         res.status(201).json({ message: 'Article created successfully', article: newArticle });
     } catch (error) {
         console.error('Failed to create article:', error);
-        if (error instanceof Error && error.message.includes('Validation Error')) {
-            return res.status(400).json({ message: 'Invalid article data', errors: error.message });
-        };
         next(error);
     }
 }
@@ -113,4 +108,4 @@ export async function getArticleList(req: Request, res: Response, next: NextFunc
         console.error('Error fetching article list with like status:', error);
         next(error);
     }
-}
+};

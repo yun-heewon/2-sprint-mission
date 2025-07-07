@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
-import ArticleReporitory from "../repositories/articleReporitory";
-import { deleteArticle } from "../controllers/articleController";
-import articleLikeReporitory, { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
+import articleReporitory from "../repositories/articleReporitory";
+import articleLikeReporitory from "../repositories/articleLikeReporitory";
 
 
 export class ArticleService {
@@ -15,14 +14,14 @@ export class ArticleService {
             },
         };
 
-        const newArticle = await ArticleReporitory.create(createData);
+        const newArticle = await articleReporitory.create(createData);
 
         return newArticle;
     }
 
     async updateArticle(articleId: number, userId: number, articleData: Prisma.ArticleUpdateInput) {
 
-        const article = await ArticleReporitory.findById(articleId);
+        const article = await articleReporitory.findById(articleId);
         if (!article) {
             throw new Error('Article not found');
         }
@@ -36,7 +35,7 @@ export class ArticleService {
             content: articleData.content,
         };
 
-        const updateArticle = await ArticleReporitory.update(articleId, articleUpdateData);
+        const updateArticle = await articleReporitory.update(articleId, articleUpdateData);
         if (!updateArticle) {
             throw new Error('Article update failed');
         }
@@ -45,7 +44,7 @@ export class ArticleService {
     }
 
     async deleteArticle(userId: number, articleId: number) {
-        const article = await ArticleReporitory.findById(articleId);
+        const article = await articleReporitory.findById(articleId);
         if (!article) {
             throw new Error('Article not found');
         }
@@ -54,7 +53,7 @@ export class ArticleService {
             throw new Error('Unauthorized to delete this article');
         }
 
-        await ArticleReporitory.delete(articleId);
+        await articleReporitory.delete(articleId);
 
         return { message: 'Article deleted successfully' };
     }
@@ -77,7 +76,7 @@ export class ArticleService {
                 break;
         };
 
-        const myArticles = await ArticleReporitory.findManyByUserId(userId);
+        const myArticles = await articleReporitory.findManyByUserId(userId);
 
         return myArticles
     }
@@ -101,7 +100,7 @@ export class ArticleService {
         };
 
         // 게시글 목록 가져오기 
-        const getArticleList = await ArticleReporitory.findManyArticles({
+        const getArticleList = await articleReporitory.findManyArticles({
             skip: options.offset,
             take: options.limit,
             orderBy: orderBy,
