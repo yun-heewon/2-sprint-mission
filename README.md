@@ -10,22 +10,24 @@
 
 
 ### 프로젝트 세팅
-- [ ] tsconfig.json 파일을 생성하고, 필요한 옵션을 설정해 주세요. (예: outDir).
-- [ ] 필요한 npm script를 설정해 주세요. (예: 빌드 및 개발 서버 실행 명령어)
-- [ ] any 타입의 사용은 최소화해주세요.
+- [x] tsconfig.json 파일을 생성하고, 필요한 옵션을 설정해 주세요. (예: outDir).
+- [x] 필요한 npm script를 설정해 주세요. (예: 빌드 및 개발 서버 실행 명령어)
+- [x] any 타입의 사용은 최소화해주세요.
 - [ ] 복잡한 객체 구조나 배열 구조를 가진 변수에 인터페이스 또는 타입 별칭을 사용하세요.
 - [ ] 필요한 경우, 타입 별칭 또는 유틸리티 타입을 사용해 타입 복잡성을 줄여주세요.
-- [ ] 필요한 경우, declare를 사용하여 타입을 오버라이드하거나 확장합니다. (예: req.user)
+- [x] 필요한 경우, declare를 사용하여 타입을 오버라이드하거나 확장합니다. (예: req.user)
+
 
 ### 개발 환경 설정
-- [ ] ts-node 를 사용해 .ts 코드를 바로 실행할 수 있는 npm script를 만들어 주세요. (예: npm run dev)
-- [ ] nodemon을 사용해 .ts 코드가 변경될 때마다 서버가 다시 실행되는 npm script를 만들어 주세요. (예: npm run dev)
+- [x] ts-node 를 사용해 .ts 코드를 바로 실행할 수 있는 npm script를 만들어 주세요. (예: npm run dev)
+- [x] nodemon을 사용해 .ts 코드가 변경될 때마다 서버가 다시 실행되는 npm script를 만들어 주세요. (예: npm run dev)
 
 
 ## 심화 요구사항
 ### Layered Architecture 적용하기
-- [ ] Controller, Service, Repository로 나누어 코드를 리팩토링해 주세요.
+- [x] Controller, Service, Repository로 나누어 코드를 리팩토링해 주세요.
 - [ ] 필요하다면, 계층 사이에서 데이터를 주고 받을 때 DTO를 활용해 주세요.
+
 
 ## 멘토에게
  

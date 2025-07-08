@@ -2,31 +2,42 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser7@sample.com",
-  "nickname": "testuser7",
+  "email": "testuser1@sample.com",
+  "nickname": "testuser1",
   "password": "123123"
 }
 
 ###
 
-POST http://localhost:3001/users/login
+POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
   "email": "testuser1@sample.com",
-  "password": "123123"
+  "password": "12341234"
 }
 
 ###
-Post http://localhost:3001/users/logout
+PATCH http://localhost:3000/users/me
+Content-Type: application/json
+
+{
+  "password": "12341234"
+}
+
+###
+GET http://localhost:3000/users/me
+
+###
+Post http://localhost:3000/users/logout
 
 ###
 
-GET http://localhost:3001/articles
+GET http://localhost:3000/articles
 
 ### 
 
-POST http://localhost:3001/products/create
+POST http://localhost:3000/products/create
 Content-Type: application/json
 
 {
@@ -37,12 +48,11 @@ Content-Type: application/json
 }
 ###
 
-PATCH http://localhost:3000/products/update/3
+PATCH http://localhost:3000/products/update/2
 Content-Type: application/json
 
 {
-  "description": "펜슬입니다. 필요없어서 팔아요 5000원 가격인하",
-    "price": 50000
+    "price": 350000
 }
 
 ###
@@ -50,33 +60,33 @@ Post http://localhost:3000/products/comments/1/create
 Content-Type: application/json
 
 {
-"content": "제가 구매하고싶어요"
+"content": "하자 없나요"
 }
 
 ###
-Post http://localhost:3000/articles/comments/5/create
+Post http://localhost:3000/articles/comments/7/create
 Content-Type: application/json
 
 {
-"content": "코딩에는 맥북이죠"
-}
-
-
-###
-PATCH http://localhost:3000/articles/comments/2/update
-Content-Type: application/json
-
-{
-"content": "반가워요"
+"content": "저도 얼마 전에 제습기 사니 좋더라구요"
 }
 
 
 ###
-PATCH http://localhost:3000/products/comments/2/update
+PATCH http://localhost:3000/articles/comments/3/update
 Content-Type: application/json
 
 {
-"content": "제가 구매하겠습니다"
+"content": "저도 얼마 전에 제습기 샀는데 안 쓰는거랑 다르더라구요"
+}
+
+
+###
+PATCH http://localhost:3000/products/comments/1/update
+Content-Type: application/json
+
+{
+"content": "액정 깨짐이나 기스 없나요"
 }
 
 ###
@@ -84,25 +94,25 @@ POST http://localhost:3000/articles/create
 Content-Type: application/json
 
 {
-  "title": "노트북 추천 부탁드려요",
-  "content": "코딩 배워보려고 하는데 노트북 추천해주세요"
+  "title": "날씨가 너무 더워요",
+  "content": "제습기 필수네요 "
 }
 
 ###
-PATCH  http://localhost:3000/articles/update/2
+PATCH  http://localhost:3000/articles/update/4
 Content-Type: application/json
 
 {
-  "title": "가입인사입니댜"
+  "title": "반가워요"
 }
 
 
 ###
-POST http://localhost:3001/likes/articles/1
+POST http://localhost:3000/likes/articles/1
 
 
 ###
-POST http://localhost:3000/likes/products/1
+POST http://localhost:3000/likes/products/3
 
 ###
 GET  http://localhost:3000/articles/my-article
@@ -118,16 +128,18 @@ GET  http://localhost:3000/articles
 
 ###
 
-DELETE http://localhost:3000/articles/3
+DELETE http://localhost:3000/users/12
+
+###
+
+DELETE http://localhost:3000/products/2
+
+###
+DELETE http://localhost:3000/products/comments/3
+
+###
+DELETE http://localhost:3000/articles/comments/3
 
 
 ###
-
-DELETE http://localhost:3000/products/4
-
-###
-DELETE http://localhost:3000/products/comments/2
-
-###
-DELETE http://localhost:3000/articles/comments/2
-
+DELETE http://localhost:3000/articles/6
