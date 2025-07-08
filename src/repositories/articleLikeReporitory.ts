@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
 
 export class ArticleLikeRepository {
@@ -11,6 +10,31 @@ export class ArticleLikeRepository {
             select: { articleId: true },
         });
     };
+
+    async checkingArticleLikeStatus(userId: number, articleId: number) {
+        return prisma.articleLike.findFirst({
+            where: {
+                userId,
+                articleId
+            },
+        });
+    }
+
+    async deleteArticleLike(id: number) {
+        return prisma.articleLike.delete({
+            where: { id },
+        });
+    }
+
+    async uploadArticleLike(userId: number, articleId: number) {
+        return prisma.articleLike.create({
+            data: {
+                userId,
+                articleId
+            },
+        });
+    }
+
 }
 
 export default new ArticleLikeRepository();

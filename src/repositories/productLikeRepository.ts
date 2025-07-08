@@ -39,6 +39,31 @@ export class ProductLikeRepository {
             }
         });
     };
+
+    async checkingProductLikeStatus(userId: number, productId: number) {
+        return prisma.productLike.findFirst({
+            where: {
+                userId,
+                productId
+            },
+        });
+    }
+
+    async deleteProductLike(id: number) {
+        return prisma.productLike.delete({
+            where: { id },
+        });
+    }
+
+    async uploadProductLike(userId: number, productId: number) {
+        return prisma.productLike.create({
+            data: {
+                userId,
+                productId
+            },
+        });
+    }
+
 }
 
 
