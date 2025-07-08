@@ -53,6 +53,28 @@ export class ArticleRepository {
             where: { id },
         });
     }
+
+    async updateLikeIncrease(id: number) {
+        return prisma.article.update({
+            where: { id },
+            data: {
+                likeCount: { increment: 1 },
+            },
+            select: {
+                likeCount: true,
+            },
+        });
+    }
+
+    async updateLikeDecrease(id: number) {
+        return prisma.article.update({
+            where: { id },
+            data: {
+                likeCount: { decrement: 1 },
+            },
+            select: { likeCount: true },
+        });
+    }
 }
 
 export default new ArticleRepository();
