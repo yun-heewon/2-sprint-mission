@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { ProductFindManyOptions } from "../types/product";
 
 export class ProductRepository {
 
@@ -9,11 +10,7 @@ export class ProductRepository {
         });
     }
 
-    async findManyProducts(options?: {
-        skip?: number;
-        take?: number;
-        orderBy?: Prisma.ProductOrderByWithRelationInput;
-    }) {
+    async findManyProducts(options?: ProductFindManyOptions) {
         return prisma.product.findMany({
             skip: options?.skip,
             take: options?.take,
@@ -21,11 +18,7 @@ export class ProductRepository {
         })
     }
 
-    async findManyByUserId(userId: number, options?: {
-        skip?: number;
-        take?: number;
-        orderBy?: Prisma.ProductOrderByWithRelationInput;
-    }) {
+    async findManyByUserId(userId: number, options?: ProductFindManyOptions) {
         return prisma.product.findMany({
             where: { userId },
             skip: options?.skip,

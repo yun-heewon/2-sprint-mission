@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { ArticleFindManyOptions } from "../types/article";
 
 export class ArticleRepository {
 
@@ -9,11 +10,7 @@ export class ArticleRepository {
         });
     }
 
-    async findManyArticles(options?: {
-        skip?: number;
-        take?: number;
-        orderBy?: Prisma.ArticleOrderByWithRelationInput;
-    }) {
+    async findManyArticles(options?: ArticleFindManyOptions) {
         return prisma.article.findMany({
             skip: options?.skip,
             take: options?.take,
@@ -21,11 +18,7 @@ export class ArticleRepository {
         })
     }
 
-    async findManyByUserId(userId: number, options?: {
-        skip?: number;
-        take?: number;
-        orderBy?: Prisma.ArticleOrderByWithRelationInput;
-    }) {
+    async findManyByUserId(userId: number, options?: ArticleFindManyOptions) {
         return prisma.article.findMany({
             where: { userId },
             skip: options?.skip,

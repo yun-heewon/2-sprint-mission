@@ -1,5 +1,5 @@
-import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
+import { LikedProductFindManyOptions } from "../types/product";
 
 export class ProductLikeRepository {
 
@@ -12,13 +12,7 @@ export class ProductLikeRepository {
         });
     };
 
-    async findLikedProductsByUserId(userId: number,
-        options?: {
-            skip?: number;
-            take?: number;
-            orderBy?: Prisma.ProductLikeOrderByWithRelationInput;
-        }
-    ) {
+    async findLikedProductsByUserId(userId: number, options?: LikedProductFindManyOptions) {
         return prisma.productLike.findMany({
             where: {
                 userId
@@ -31,9 +25,13 @@ export class ProductLikeRepository {
                     select: {
                         id: true,
                         name: true,
+                        description: true,
                         price: true,
+                        tags: true,
+                        userId: true,
                         likeCount: true,
-                        createdAt: true
+                        createdAt: true,
+                        updatedAt: true,
                     }
                 }
             }
