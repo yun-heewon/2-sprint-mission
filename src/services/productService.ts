@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import productRepository from "../repositories/productRepository";
 import productLikeRepository from "../repositories/productLikeRepository";
-import { CreateProductDto, PatchProductDto, ProductOutput } from "../dtos/products.dto";
+import { CreateProductDto, PatchProductDto, ProductListOptions, ProductOutput, ProductOutputWithLiked } from "../types/product";
 
 export class ProductService {
 
@@ -19,17 +19,7 @@ export class ProductService {
 
         const newProduct = await productRepository.create(createData);
 
-        return {
-            id: newProduct.id,
-            name: newProduct.name,
-            description: newProduct.description,
-            price: newProduct.price,
-            tags: newProduct.tags,
-            likeCount: newProduct.likeCount,
-            userId: newProduct.userId,
-            createdAt: newProduct.createdAt,
-            updatedAt: newProduct.updatedAt
-        };
+        return { ...newProduct };
     }
 
     async updateProduct(userId: number, productId: number, productData: PatchProductDto): Promise<ProductOutput> {
@@ -56,17 +46,7 @@ export class ProductService {
             throw new Error('Product update failed');
         }
 
-        return {
-            id: updateProduct.id,
-            name: updateProduct.name,
-            description: updateProduct.description,
-            price: updateProduct.price,
-            tags: updateProduct.tags,
-            likeCount: updateProduct.likeCount,
-            userId: updateProduct.userId,
-            createdAt: updateProduct.createdAt,
-            updatedAt: updateProduct.updatedAt
-        };
+        return { ...updateProduct };
     }
 
 
@@ -85,14 +65,8 @@ export class ProductService {
         return { message: 'Product deleted successfully' };
     }
 
-    async myProducts(userId: number,
-        options: {
-            offset?: number;
-            limit?: number;
-            order?: 'newest' | 'oldest';
-        }
-    ) {
-        let orderBy: Prisma.ArticleOrderByWithRelationInput;
+    async myProducts(userId: number, options: ProductListOptions): Promise<ProductOutput[]> {
+        let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (options.order) {
             case 'oldest':
                 orderBy = { createdAt: 'asc' };
@@ -102,17 +76,25 @@ export class ProductService {
                 orderBy = { createdAt: 'desc' };
                 break;
         };
-        const myProducts = await productRepository.findManyByUserId(userId);
-        return myProducts;
+        const myProducts = await productRepository.findManyByUserId(userId, {
+            skip: options.offset,
+            take: options.limit,
+            orderBy: orderBy,
+        });
+        return myProducts.map(product => ({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            tags: product.tags,
+            likeCount: product.likeCount,
+            userId: product.userId,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt
+        }))
     }
 
-    async getProductList(userId: number,
-        options: {
-            offset?: number;
-            limit?: number;
-            order?: 'newest' | 'oldest';
-        }
-    ) {
+    async getProductList(userId: number, options: ProductListOptions): Promise<ProductOutputWithLiked[]> {
         let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (options.order) {
             case 'oldest':
@@ -138,20 +120,22 @@ export class ProductService {
         const likedProductIds = new Set(myLikedProduct.map(like => like.productId));
 
         //전체 상품 목록에 isLiked 추가 
-        const productLiked = getProductList.map(product => ({
-            ...product,
-            isLiked: likedProductIds.has(product.id),
+        const productsWithLikedStatus: ProductOutputWithLiked[] = getProductList.map(product => ({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            tags: product.tags,
+            likeCount: product.likeCount,
+            userId: product.userId,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+            isLiked: likedProductIds.has(product.id)
         }));
-        return productLiked
+        return productsWithLikedStatus
     }
 
-    async myProductsLiked(userId: number,
-        options: {
-            offset?: number;
-            limit?: number;
-            order?: 'newest' | 'oldest';
-        }
-    ) {
+    async myProductsLiked(userId: number, options: ProductListOptions): Promise<ProductOutputWithLiked[]> {
         let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (options.order) {
             case 'oldest':
@@ -169,11 +153,19 @@ export class ProductService {
             orderBy: orderBy,
         });
 
-        const products = likedProducts.map(item => ({
-            ...item.product,
+        const productsWithLikedStatus: ProductOutputWithLiked[] = likedProducts.map(item => ({
+            id: item.product.id,
+            name: item.product.name,
+            description: item.product.description,
+            price: item.product.price,
+            tags: item.product.tags,
+            likeCount: item.product.likeCount,
+            userId: item.product.userId,
+            createdAt: item.product.createdAt,
+            updatedAt: item.product.updatedAt,
             isLiked: true,
         }));
-        return products
+        return productsWithLikedStatus
     }
 }
 

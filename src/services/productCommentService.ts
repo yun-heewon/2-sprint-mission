@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import userReporitory from "../repositories/userReporitory";
 import productRepository from "../repositories/productRepository";
 import productCommentRepository from "../repositories/productCommentRepository";
-import { CommentDto, ProductCommentOutput } from "../dtos/comments.dto";
+import { CommentDto, ProductCommentOutput } from "../types/comment";
 
 export class ProductCommentService {
     async createProductComment(userId: number, productId: number, commentData: CommentDto): Promise<ProductCommentOutput> {
@@ -31,14 +31,7 @@ export class ProductCommentService {
         };
 
         const newProductComment = await productCommentRepository.create(createData);
-        return {
-            id: newProductComment.id,
-            content: newProductComment.content,
-            userId: newProductComment.userId,
-            productId: newProductComment.productId,
-            createdAt: newProductComment.createdAt,
-            updatedAt: newProductComment.updatedAt,
-        };
+        return { ...newProductComment };
     }
 
     async updateProductComment(userId: number, productCommentId: number, updateData: CommentDto): Promise<ProductCommentOutput> {
@@ -63,14 +56,7 @@ export class ProductCommentService {
 
         const updateProductComment = await productCommentRepository.update(productCommentId, productCommentUpdateData);
 
-        return {
-            id: updateProductComment.id,
-            content: updateProductComment.content,
-            userId: updateProductComment.userId,
-            productId: updateProductComment.productId,
-            createdAt: updateProductComment.createdAt,
-            updatedAt: updateProductComment.updatedAt,
-        };
+        return { ...updateProductComment };
     }
 
     async deleteProductComment(userId: number, productCommentId: number) {

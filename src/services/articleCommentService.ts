@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import articleCommentRepository from "../repositories/articleCommentRepository";
 import articleReporitory from "../repositories/articleReporitory";
 import userReporitory from "../repositories/userReporitory";
-import { ArticleCommentOutput, CommentDto } from "../dtos/comments.dto";
+import { ArticleCommentOutput, CommentDto } from "../types/comment";
 
 export class ArticleCommentService {
     async createArticleComment(userId: number, articleId: number, commentData: CommentDto): Promise<ArticleCommentOutput> {
@@ -32,14 +32,7 @@ export class ArticleCommentService {
 
         const newArticleComment = await articleCommentRepository.create(createData);
 
-        return {
-            id: newArticleComment.id,
-            content: newArticleComment.content,
-            userId: newArticleComment.userId,
-            articleId: newArticleComment.articleId,
-            createdAt: newArticleComment.createdAt,
-            updatedAt: newArticleComment.updatedAt,
-        };
+        return { ...newArticleComment };
     }
 
     async updateArticleComment(userId: number, articleCommentId: number, updateComment: CommentDto): Promise<ArticleCommentOutput> {
@@ -64,14 +57,7 @@ export class ArticleCommentService {
 
         const updateArticleComment = await articleCommentRepository.update(articleCommentId, articleCommentUpdateDate);
 
-        return {
-            id: updateArticleComment.id,
-            content: updateArticleComment.content,
-            userId: updateArticleComment.userId,
-            articleId: updateArticleComment.articleId,
-            createdAt: updateArticleComment.createdAt,
-            updatedAt: updateArticleComment.updatedAt,
-        };
+        return { ...updateArticleComment };
     }
 
     async deleteArticleComment(userId: number, articleCommentId: number) {
