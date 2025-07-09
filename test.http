@@ -1,149 +1,172 @@
+### 회원가입
 POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser4@sample.com",
-  "nickname": "testuser4",
+  "email": "testuser7@sample.com",
+  "nickname": "testuser7",
   "password": "123123"
 }
 
-###
 
+###로그인
 POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
-  "email": "testuser3@sample.com",
+  "email": "testuser7@sample.com",
   "password": "123123"
 }
 
-###
+
+### 회원 정보 수정
 PATCH http://localhost:3000/users/me
 Content-Type: application/json
 
 {
-  "password": "123123"
+  "nickname": "테스트유저5"
 }
 
-###
+
+### 로그인 유저 정보 확인
 GET http://localhost:3000/users/me
 
-###
+
+###로그아웃 
 Post http://localhost:3000/users/logout
 
-###
+###회원탈퇴
+DELETE http://localhost:3000/users/7
 
+
+###게시글 조회 (isLiked 추가)
 GET http://localhost:3000/articles
 
-###
 
-GET http://localhost:3000/products
+### 게시글 작성
 
-### 
-
-POST http://localhost:3000/products/create
-Content-Type: application/json
-
-{
-  "name": "에어팟 프로 3",
-    "description": "미개봉 신제품",
-    "price": 300000,
-    "tags": ["애플", "블루투스이어폰", "에어팟"]
-}
-###
-
-PATCH http://localhost:3000/products/update/2
-Content-Type: application/json
-
-{
-    "price": 320000
-}
-
-###
-Post http://localhost:3000/products/comments/1/create
-Content-Type: application/json
-
-{
-"content": "얼마나 썼나요"
-}
-
-###
-Post http://localhost:3000/articles/comments/1/create
-Content-Type: application/json
-
-{
-"content": "반갑습니다 ^^"
-}
-
-
-###
-PATCH http://localhost:3000/articles/comments/1/update
-Content-Type: application/json
-
-{
-"content": "안녕하세요 반갑습니다 ^^"
-}
-
-
-###
-PATCH http://localhost:3000/products/comments/1/update
-Content-Type: application/json
-
-{
-"content": "언제 구매하셨나요? 얼마나 쓰셨나요"
-}
-
-###
 POST http://localhost:3000/articles/create
 Content-Type: application/json
 
 {
   "title": "안녕하세요",
-  "content": "안녕하세요 오늘 가입했어요"
+  "content": "안녕하세요 ^^"
 }
 
-###
-PATCH  http://localhost:3000/articles/update/4
+
+### 게시글 수정
+PATCH  http://localhost:3000/articles/update/2
 Content-Type: application/json
 
 {
-  "title": "반가워요"
+  "title": "날씨가 너무 더워요"
 }
 
 
-###
-POST http://localhost:3000/likes/articles/1
-
-
-###
-POST http://localhost:3000/likes/products/1
-
-###
+### 내 게시글 조회
 GET  http://localhost:3000/articles/my-article
 
-###
+
+### 게시글 삭제
+DELETE http://localhost:3000/articles/5
+
+
+### 상품 조회
+GET http://localhost:3000/products
+
+
+### 상품 등록 
+
+POST http://localhost:3000/products/create
+Content-Type: application/json
+
+{
+  "name": "워시타워",
+    "description": "2년 사용.하자없음",
+    "price": 1500000,
+    "tags": ["lg", "건조기", "세탁기", "워시타워"]
+}
+
+
+### 상품 수정
+
+PATCH http://localhost:3000/products/update/4
+Content-Type: application/json
+
+{
+    "name": "건조기"
+}
+
+
+### 내 상품 조회
 GET  http://localhost:3000/products/my-product
 
-###
+
+### 내가 좋아요한 상품 조회
 GET  http://localhost:3000/products/me/liked-products
 
-###
-GET  http://localhost:3000/articles
 
-###
+###상품 삭제
+DELETE http://localhost:3000/products/6
 
-DELETE http://localhost:3000/users/12
 
-###
+### 게시물 댓글 달기
+Post http://localhost:3000/articles/comments/3/create
+Content-Type: application/json
 
-DELETE http://localhost:3000/products/2
+{
+"content": "아이패드 노트로 쓰기 좋아요"
+}
+
+
+
+### 게시물 댓글 수정
+PATCH http://localhost:3000/articles/comments/2/update
+Content-Type: application/json
+
+{
+"content": "애플펜슬 사용하면 노트로 쓰기 좋아요"
+}
+
+
+### 게시물 댓글 삭제
+DELETE http://localhost:3000/articles/comments/3
+
+
+### 상품 댓글 달기
+Post http://localhost:3000/products/comments/3/create
+Content-Type: application/json
+
+{
+"content": "몇 리터짜리인가요"
+}
+
+
+### 상품 댓글 수정
+PATCH http://localhost:3000/products/comments/3/update
+Content-Type: application/json
+
+{
+"content": "몇 L짜리인가요"
+}
+
+
+### 상품 댓글 삭제
+DELETE http://localhost:3000/products/comments/2
+
+
+### 게시글 좋아요 등록/ 취소 
+POST http://localhost:3000/likes/articles/2
+
+
+### 상품 좋아요 등록/ 취소 
+POST http://localhost:3000/likes/products/2
+
+
+
 
 ###
 DELETE http://localhost:3000/products/comments/3
 
-###
-DELETE http://localhost:3000/articles/comments/3
 
 
-###
-DELETE http://localhost:3000/articles/6
