@@ -2,9 +2,10 @@ import { Prisma } from "@prisma/client";
 import userReporitory from "../repositories/userReporitory";
 import productRepository from "../repositories/productRepository";
 import productCommentRepository from "../repositories/productCommentRepository";
+import { CommentDto, ProductCommentOutput } from "../dtos/comments.dto";
 
 export class ProductCommentService {
-    async createProductComment(userId: number, productId: number, commentData: { content: string }) {
+    async createProductComment(userId: number, productId: number, commentData: CommentDto): Promise<ProductCommentOutput> {
         const user = await userReporitory.findById(userId);
         if (!user) {
             throw new Error('User not found');
@@ -30,10 +31,17 @@ export class ProductCommentService {
         };
 
         const newProductComment = await productCommentRepository.create(createData);
-        return newProductComment;
+        return {
+            id: newProductComment.id,
+            content: newProductComment.content,
+            userId: newProductComment.userId,
+            productId: newProductComment.productId,
+            createdAt: newProductComment.createdAt,
+            updatedAt: newProductComment.updatedAt,
+        };
     }
 
-    async updateProductComment(userId: number, productCommentId: number, updateData: { content: string }) {
+    async updateProductComment(userId: number, productCommentId: number, updateData: CommentDto): Promise<ProductCommentOutput> {
 
         const user = await userReporitory.findById(userId);
         if (!user) {
@@ -55,7 +63,14 @@ export class ProductCommentService {
 
         const updateProductComment = await productCommentRepository.update(productCommentId, productCommentUpdateData);
 
-        return updateProductComment;
+        return {
+            id: updateProductComment.id,
+            content: updateProductComment.content,
+            userId: updateProductComment.userId,
+            productId: updateProductComment.productId,
+            createdAt: updateProductComment.createdAt,
+            updatedAt: updateProductComment.updatedAt,
+        };
     }
 
     async deleteProductComment(userId: number, productCommentId: number) {

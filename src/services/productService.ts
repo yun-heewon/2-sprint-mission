@@ -1,11 +1,11 @@
 import { Prisma } from "@prisma/client";
 import productRepository from "../repositories/productRepository";
 import productLikeRepository from "../repositories/productLikeRepository";
+import { CreateProductDto, PatchProductDto, ProductOutput } from "../dtos/products.dto";
 
 export class ProductService {
 
-    async createProduct(userId: number,
-        productData: { name: string, description: string, price: number, tags: string[] }) {
+    async createProduct(userId: number, productData: CreateProductDto): Promise<ProductOutput> {
 
         const createData: Prisma.ProductCreateInput = {
             name: productData.name,
@@ -19,10 +19,20 @@ export class ProductService {
 
         const newProduct = await productRepository.create(createData);
 
-        return newProduct;
+        return {
+            id: newProduct.id,
+            name: newProduct.name,
+            description: newProduct.description,
+            price: newProduct.price,
+            tags: newProduct.tags,
+            likeCount: newProduct.likeCount,
+            userId: newProduct.userId,
+            createdAt: newProduct.createdAt,
+            updatedAt: newProduct.updatedAt
+        };
     }
 
-    async updateProduct(userId: number, productId: number, productData: Prisma.ProductUpdateInput) {
+    async updateProduct(userId: number, productId: number, productData: PatchProductDto): Promise<ProductOutput> {
         const product = await productRepository.findById(productId);
 
         if (!product) {
@@ -46,7 +56,17 @@ export class ProductService {
             throw new Error('Product update failed');
         }
 
-        return updateProduct;
+        return {
+            id: updateProduct.id,
+            name: updateProduct.name,
+            description: updateProduct.description,
+            price: updateProduct.price,
+            tags: updateProduct.tags,
+            likeCount: updateProduct.likeCount,
+            userId: updateProduct.userId,
+            createdAt: updateProduct.createdAt,
+            updatedAt: updateProduct.updatedAt
+        };
     }
 
 
@@ -93,7 +113,7 @@ export class ProductService {
             order?: 'newest' | 'oldest';
         }
     ) {
-        let orderBy: Prisma.ArticleOrderByWithRelationInput;
+        let orderBy: Prisma.ProductOrderByWithRelationInput;
         switch (options.order) {
             case 'oldest':
                 orderBy = { createdAt: 'asc' };

@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUser, PatchUser } from '../dtos/users.dto';
+import { CreateUser, PatchUser, PatchUserDto } from '../dtos/users.dto';
 import { assert } from 'superstruct';
 import { setTokenCookies, clearTokenCookies } from '../lib/token';
 import fs from 'fs';
-import { Prisma } from '@prisma/client';
 import userService from '../services/userService';
+
 
 
 
@@ -63,9 +63,9 @@ export async function register(req: Request, res: Response, next: NextFunction) 
         }
         if (error.message === 'Email already exist! Please Change to something else' ||
             error.message === 'User nickname already exist! Please Change to something else') {
-            return res.status(409).json({ message: error.message }); // 409 Conflict
+            return res.status(409).json({ message: error.message });
         }
-        if (error instanceof Error && error.message.includes('Validation Error')) { // assert 라이브러리의 에러 메시지에 따라 다름
+        if (error instanceof Error && error.message.includes('Validation Error')) {
             return res.status(400).json({ message: 'Invalid registration data', errors: error.message });
         }
         next(error);
@@ -103,7 +103,7 @@ export async function patchUser(req: Request, res: Response, next: NextFunction)
 
         assert(req.body, PatchUser);
 
-        const updateData: Prisma.UserUpdateInput = req.body;
+        const updateData: PatchUserDto = req.body as PatchUserDto;
 
         const updatedUser = await userService.updateUser(loggedInUser, updateData);
 

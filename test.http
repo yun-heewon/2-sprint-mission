@@ -2,8 +2,8 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser1@sample.com",
-  "nickname": "testuser1",
+  "email": "testuser4@sample.com",
+  "nickname": "testuser4",
   "password": "123123"
 }
 
@@ -13,8 +13,8 @@ POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
-  "email": "testuser1@sample.com",
-  "password": "12341234"
+  "email": "testuser3@sample.com",
+  "password": "123123"
 }
 
 ###
@@ -22,7 +22,7 @@ PATCH http://localhost:3000/users/me
 Content-Type: application/json
 
 {
-  "password": "12341234"
+  "password": "123123"
 }
 
 ###
@@ -35,16 +35,20 @@ Post http://localhost:3000/users/logout
 
 GET http://localhost:3000/articles
 
+###
+
+GET http://localhost:3000/products
+
 ### 
 
 POST http://localhost:3000/products/create
 Content-Type: application/json
 
 {
-  "name": "고양이 캣타워 원목",
-    "description": "구매해주세요 제발",
-    "price": 100000,
-    "tags": ["고양이", "캣타워", "원목"]
+  "name": "에어팟 프로 3",
+    "description": "미개봉 신제품",
+    "price": 300000,
+    "tags": ["애플", "블루투스이어폰", "에어팟"]
 }
 ###
 
@@ -52,7 +56,7 @@ PATCH http://localhost:3000/products/update/2
 Content-Type: application/json
 
 {
-    "price": 350000
+    "price": 320000
 }
 
 ###
@@ -60,24 +64,24 @@ Post http://localhost:3000/products/comments/1/create
 Content-Type: application/json
 
 {
-"content": "하자 없나요"
+"content": "얼마나 썼나요"
 }
 
 ###
-Post http://localhost:3000/articles/comments/7/create
+Post http://localhost:3000/articles/comments/1/create
 Content-Type: application/json
 
 {
-"content": "저도 얼마 전에 제습기 사니 좋더라구요"
+"content": "반갑습니다 ^^"
 }
 
 
 ###
-PATCH http://localhost:3000/articles/comments/3/update
+PATCH http://localhost:3000/articles/comments/1/update
 Content-Type: application/json
 
 {
-"content": "저도 얼마 전에 제습기 샀는데 안 쓰는거랑 다르더라구요"
+"content": "안녕하세요 반갑습니다 ^^"
 }
 
 
@@ -86,7 +90,7 @@ PATCH http://localhost:3000/products/comments/1/update
 Content-Type: application/json
 
 {
-"content": "액정 깨짐이나 기스 없나요"
+"content": "언제 구매하셨나요? 얼마나 쓰셨나요"
 }
 
 ###
@@ -94,8 +98,8 @@ POST http://localhost:3000/articles/create
 Content-Type: application/json
 
 {
-  "title": "날씨가 너무 더워요",
-  "content": "제습기 필수네요 "
+  "title": "안녕하세요",
+  "content": "안녕하세요 오늘 가입했어요"
 }
 
 ###
@@ -112,7 +116,7 @@ POST http://localhost:3000/likes/articles/1
 
 
 ###
-POST http://localhost:3000/likes/products/3
+POST http://localhost:3000/likes/products/1
 
 ###
 GET  http://localhost:3000/articles/my-article

@@ -1,10 +1,11 @@
 import { Prisma } from "@prisma/client";
 import articleReporitory from "../repositories/articleReporitory";
 import articleLikeReporitory from "../repositories/articleLikeReporitory";
+import { ArticleOutput, CreateArticleDto, PatchArticleDto } from "../dtos/articles.dto";
 
 
 export class ArticleService {
-    async createArticle(userId: number, articleData: { title: string, content: string }) {
+    async createArticle(userId: number, articleData: CreateArticleDto): Promise<ArticleOutput> {
 
         const createData: Prisma.ArticleCreateInput = {
             title: articleData.title,
@@ -16,10 +17,18 @@ export class ArticleService {
 
         const newArticle = await articleReporitory.create(createData);
 
-        return newArticle;
+        return {
+            id: newArticle.id,
+            title: newArticle.title,
+            content: newArticle.content,
+            userId: newArticle.userId,
+            likeCount: newArticle.likeCount,
+            createdAt: newArticle.createdAt,
+            updatedAt: newArticle.updatedAt,
+        };
     }
 
-    async updateArticle(articleId: number, userId: number, articleData: Prisma.ArticleUpdateInput) {
+    async updateArticle(articleId: number, userId: number, articleData: PatchArticleDto): Promise<ArticleOutput> {
 
         const article = await articleReporitory.findById(articleId);
         if (!article) {
@@ -40,7 +49,15 @@ export class ArticleService {
             throw new Error('Article update failed');
         }
 
-        return updateArticle;
+        return {
+            id: updateArticle.id,
+            title: updateArticle.title,
+            content: updateArticle.content,
+            userId: updateArticle.userId,
+            likeCount: updateArticle.likeCount,
+            createdAt: updateArticle.createdAt,
+            updatedAt: updateArticle.updatedAt,
+        }
     }
 
     async deleteArticle(userId: number, articleId: number) {

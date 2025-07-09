@@ -1,6 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import prisma from '../lib/prisma';
-import path from 'path';
 import fs from 'fs';
 import { Prisma } from '@prisma/client';
 import documentService from '../services/documentService';
