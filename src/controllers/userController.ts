@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUser, PatchUser, PatchUserDto } from '../dtos/users.dto';
+import { CreateUser, PatchUser } from '../dtos/users.dto';
 import { assert } from 'superstruct';
 import { setTokenCookies, clearTokenCookies } from '../lib/token';
 import fs from 'fs';
 import userService from '../services/userService';
+import { PatchUserDto } from '../types/user';
 
 
 
