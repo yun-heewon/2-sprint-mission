@@ -8,19 +8,3 @@ export const CreateArticle = object({
 export const PatchArticle = partial(CreateArticle);
 
 
-export interface CreateArticleDto {
-    title: string;
-    content: string;
-}
-
-export interface PatchArticleDto extends Partial<CreateArticleDto> { };
-
-export interface ArticleOutput {
-    id: number;
-    title: string;
-    content: string;
-    userId: number;
-    likeCount: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
