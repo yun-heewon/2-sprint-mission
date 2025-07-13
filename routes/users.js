@@ -65,11 +65,45 @@ router.delete('/:id', async (req, res, next) => {
     await prisma.user.delete({
       where: { id },
     })
+
     res.status(204).json();
   } catch (error) {
     console.error('Error deleting user:', error);
     next(error);
   }
 })
+
+function logout(req, res) {
+  clearTokenCookies(res);
+  res.status(200).send();
+}
+
+//브라우저 쿠키에 토큰 저장 
+function setTokenCookies(res, accessToken, refreshToken) {
+  res.cookie(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
+    httpOnly: true,
+    maxAge: 1 * 60 * 60 * 1000,
+  });
+  res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+    httpOnly: true,
+    maxAge: 1 * 24 * 60 * 60 * 1000,
+    path: '/refresh',
+  });
+}
+
+//만료 토큰 갱신 
+async function refreshTokens(req, res) {
+  const user = req.user;
+  const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+    user.id
+  );
+  setTokenCookies(res, accessToken, newRefreshToken);
+  res.status(200).send();
+};
+
+function clearTokenCookies(res) {
+  res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
+  res.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
+}
 
 module.exports = router;
