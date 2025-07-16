@@ -1,151 +1,77 @@
 var express = require('express');
 var router = express.Router();
-var bcrypt = require('bcrypt');
-const { CreateUser, PatchUser } = require('../dtos/users.dto');
+const { CreateUser } = require('../dtos/users.dto');
 const { assert } = require('superstruct');
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const passport = require('../lib/passport/index.js');
-const { generateTokens } = require('../lib/token.js');
-const { ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME } = require('../lib/constants.js');
-const fs = require('fs');
-const upload = require('../lib/upload.js');
 
 
-router.get('/me', passport.authenticate('access-token', { session: false }), getUser);
-router.post('/register', upload.single('image'), register);
-router.post('/login', passport.authenticate('local', { session: false }), login);
-router.post('/refresh', passport.authenticate('refresh-token', { session: false }), refreshTokens);
-router.patch('/me', passport.authenticate('access-token', { session: false }), patchUser);
-router.delete('/:id', passport.authenticate('access-token', { session: false }), deleteUser);
-router.post('/logout', logout);
-
-//정보 조회 
-async function getUser(req, res, next) {
+// user list 조회
+router.get('/list', async (req, res, next) => {
   try {
-    const users = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { id: true, email: true, nickname: true, createdAt: true }
+    const { offset = 0, limit = 10 } = req.query;
+    const users = await prisma.user.findMany({
+      skip: parseInt(offset),
+      take: parseInt(limit),
+      select: { id: true, firstName: true, lastName: true, email: true, createdAt: true }
     });
     res.status(200).json(users);
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error('Error fetching users:', error);
     next(error);
   }
 }
+);
 
-//회원가입 
-async function register(req, res, next) {
+// user 생성
+router.post('/create', async (req, res, next) => {
   try {
     assert(req.body, CreateUser);
-  } catch (error) {
-    console.error('Validation Error:', error);
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-      console.warn(`Rolled back uploaded file due to validation error: ${req.file.path}`);
-    }
-    return res.status(400).json({ message: 'Invalid registration data', errors: error.message });
-  }
+    const { firstName, lastName, email } = req.body;
 
-  const { email, nickname, password } = req.body;
-  let imageFilename = null;
-
-  if (req.file) {
-    imageFilename = req.file.filename;
-  }
-
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt)
     const user = await prisma.user.create({
-      data: { email, nickname, password: hashedPassword, image: imageFilename },
-      select: { id: true, email: true, nickname: true, image: true, createdAt: true }
-    });
-    const profileImageUrl = imageFilename ? `/uploads/${imageFilename}` : null;
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: user,
-      profileImageUrl: profileImageUrl
-    });
+      data: { firstName, lastName, email },
+    })
+    res.status(201).json({ id: user.id });
+
   } catch (error) {
-    console.error('Failed to register user', error);
+    console.error('Error creating user:', error);
+    next(error);
+  }
+});
 
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: 'Email or User nickname already exist! Please Change to something else ' });
-    }
+// user 수정
+router.patch('/:id', async (req, res, next) => {
+  try {
+    assert(req.body, PatchUser);
+    const id = Number(req.params.id);
 
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-      console.warn(`Rolled back uploaded file due to unexpected error: ${req.file.path}`);
-    }
-
+    const user = await prisma.user.update({
+      where: { id },
+      data: req.body,
+    });
+    res.status(200).json({ id: user.id });
+  } catch (error) {
+    console.error('Error updating user:', error);
     next(error);
   }
 }
-
-//로그인
-async function login(req, res) {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-
-  const { accessToken, refreshToken } = generateTokens(req.user.id)
-  setTokenCookies(res, accessToken, refreshToken);
-  res.status(200).json();
-
-}
-
-//회원정보 수정 
-async function patchUser(req, res) {
-  const loggedInUser = req.user.id
-  try {
-    assert(req.body, PatchUser);
-  } catch (error) {
-    return res.status(400).json({ message: 'Invalid update data', errors: erro.message });
-  }
-
-  if (req.body.password) {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-    req.body.password = hashedPassword;
-  }
-
-  try {
-    const updatedUser = await prisma.user.update({
-      where: { id: loggedInUser },
-      data: req.body,
-      select: { id: true, email: true, nickname: true, image: true }
-    });
-    res.status(200).json({ message: 'User updated successfully!', user: updatedUser })
-  } catch (error) {
-    console.error('Failed to update user', error);
-
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: 'Email or User nickname already exist! Please Change to something else ' });
-    }
-    res.status(500).json({ message: 'Failed to update user information.' });
-  }
-}
+);
 
 //user 삭제 
-async function deleteUser(req, res, next) {
+router.delete('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    const user = req.user;
-
-    if (id !== user.id) {
-      return res.status(403).json({ message: 'You are not authorized to delete this account.' });
-    }
-
     await prisma.user.delete({
       where: { id },
     })
-    res.status(204).send();
-} catch (error) {
+
+    res.status(204).json();
+  } catch (error) {
     console.error('Error deleting user:', error);
     next(error);
   }
-}
+})
 
 function logout(req, res) {
   clearTokenCookies(res);
@@ -179,6 +105,5 @@ function clearTokenCookies(res) {
   res.clearCookie(ACCESS_TOKEN_COOKIE_NAME);
   res.clearCookie(REFRESH_TOKEN_COOKIE_NAME);
 }
-
 
 module.exports = router;

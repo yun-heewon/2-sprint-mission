@@ -1,106 +1,121 @@
 var express = require('express');
 var router = express.Router();
-const passport = require('../lib/passport/index.js');
 const { assert } = require("superstruct");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { ArticleComment } = require('../dtos/comments.dto');
+const { CreateArticleComment, PatchArticleComment } = require('../dtos/comments.dto');
 
-router.post('/:articleId/create', passport.authenticate('access-token', { session: false }), createComment);
-router.patch('/:commentId/update', passport.authenticate('access-token', { session: false }), updateComment);
-router.delete('/:commentId', passport.authenticate('access-token', { session: false }), deleteComment);
 
-//로그인한 사용자의 댓글 생성
-async function createComment(req, res, next) {
+//댓글 목록 조회 API, 커서 페이지네이션 사용
+router.get('/list', async (req, res, next) => {
     try {
-        assert(req.body, ArticleComment);
+        // 페이지네이션 설정
+        const pageSize = 10;
+        const { lastId } = req.query;
+
+        const queryOptions = {
+            take: pageSize,
+            orderBy: { id: 'desc' },
+            select: { id: true, content: true, createdAt: true }
+        };
+
+        // lastId가 존재하면 커서 페이지네이션을 적용
+        if (lastId) {
+            const cursorId = Number(lastId);
+            queryOptions.cursor = { id: cursorId };
+            queryOptions.skip = 1;
+        };
+
+        // 댓글 목록 조회 
+        const comments = await prisma.articleComment.findMany(queryOptions);
+
+        //다음 페이지 여부 확인 
+        const hasNextPage = comments.length === pageSize;
+
+        // 다음 페이지 있을 시 커서 설정 
+        let nextCursor = null;
+        if (hasNextPage) {
+            nextCursor = comments[comments.length - 1].id;
+        };
+        res.status(200).json({
+            comments, nextCursor, hasNextPage
+        });
     } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
+        console.error('Error fetching comments:', error);
+        next(error);
     }
+});
 
-    const user = req.user;
-    const articleId = Number(req.params.articleId);
+// 게시글 댓글 생성 API
+router.post('/create', async (req, res, next) => {
     try {
+        // 요청 본문 검증
+        assert(req.body, CreateArticleComment);
+        const { content, userId, articleId } = req.body;
+
+
+        // 게시글 존재 확인
         const article = await prisma.article.findUnique({
-            where: { id: articleId },
+            where: { id: articleId }
         });
         if (!article) {
-            return res.status(404).json({ message: 'Article not found' });
-        }
+            return res.status(404).json({ error: 'Article not found' });
+        };
 
-        const { content } = req.body;
-        const comment = await prisma.articleComment.create({
-            data: { content, userId: user.id, articleId: article.id },
-            select: { id: true, content: true, userId: true, articleId: true, createdAt: true }
+        // 사용자 존재 확인
+        const user = await prisma.user.findUnique({
+            where: { id: userId }
         });
-        res.status(201).json(comment);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        };
+
+        // 게시글 댓글 생성
+        const comment = await prisma.$transaction(async (tx) => {
+            const comment = await tx.articleComment.create({
+                data: { content, userId, articleId },
+            });
+            return comment;
+        });
+        res.status(201).json({ id: comment.id });
     } catch (error) {
-        console.error('Failed to create article comment:', error);
+        console.error('Error creating comment:', error);
         next(error);
-    }
-}
+    };
+});
 
-//로그인한 사용자의 댓글 수정
-async function updateComment(req, res, next) {
+
+// 게시글 댓글 수정 API
+router.patch('/:id', async (req, res, next) => {
     try {
-        assert(req.body, ArticleComment);
-    } catch (error) {
-        console.error(error);
-        return res.status(400).json({ message: 'Invalid Comment data', errors: error.message });
-    }
+        assert(req.body, PatchArticleComment);
 
+        const id = Number(req.params.id);
 
-    const user = req.user;
-    const commentId = Number(req.params.commentId);
-    try {
-        const comment = await prisma.articleComment.findUnique({
-            where: { id: commentId },
+        const comment = await prisma.articleComment.update({
+            where: { id },
+            data: req.body,
         });
-        if (!comment) {
-            return res.status(404).json({ message: 'Article comment not found' });
-        }
-        if (comment.userId !== user.id) {
-            return res.status(403).json({ message: 'You are not authorized to update this comment.' });
-        }
-
-
-        const { content } = req.body;
-        const updatedComment = await prisma.articleComment.update({
-            where: { id: commentId },
-            data: { content },
-            select: { id: true, content: true, userId: true, articleId: true, createdAt: true }
-        });
-        res.status(201).json(updatedComment);
+        res.status(200).json(comment);
     } catch (error) {
-        console.error('Failed to update article comment:', error);
+        console.error('Error updating comment:', error);
         next(error);
-    }
-}
+    };
+})
 
-//로그인한 사용자의 댓글 삭제
-async function deleteComment(req, res, next) {
+// 게시글 댓글 삭제 API
+router.delete('/:id', async (req, res, next) => {
     try {
-        const commentId = Number(req.params.commentId)
-        const user = req.user;
-
-        const comment = await prisma.articleComment.findUnique({ where: { id: commentId } });
-        if (!comment) {
-            return res.status(404).json({ message: 'Comment not found' });
-        }
-
-        if (comment.userId !== user.id) {
-            return res.status(403).json({ message: 'You are not authorized to delete this article comment.' });
-        }
-
+        const id = Number(req.params.id);
         await prisma.articleComment.delete({
-            where: { id: commentId }
-        })
-        res.status(204).send();
+            where: { id },
+        });
+        res.status(204).json();
     } catch (error) {
-        console.error('Failed to delete article comment:', error);
+        console.error('Error deleting comment:', error);
         next(error);
     }
-}
+});
+
 
 module.exports = router;

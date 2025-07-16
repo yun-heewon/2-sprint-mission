@@ -1,15 +1,24 @@
-const { string, object, size } = require("superstruct");
+const { string, object, partial, number } = require("superstruct");
 
-const ArticleComment = object({
-    content: size(string(), 1, 100)
+const CreateArticleComment = object({
+    content: string(),
+    userId: number(),
+    articleId: number()
 });
 
-const ProductComment = object({
-    content: size(string(), 1, 100)
+const CreateProductComment = object({
+    content: string(),
+    userId: number(),
+    productId: number()
 });
+
+const PatchArticleComment = partial(CreateArticleComment);
+const PatchProductComment = partial(CreateProductComment);
 
 module.exports = {
-    ArticleComment,
-    ProductComment,
+    CreateArticleComment,
+    CreateProductComment,
+    PatchArticleComment,
+    PatchProductComment
 };
 
