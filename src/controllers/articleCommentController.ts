@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { ArticleComment } from '../dtos/comments.dto';
-import { assert } from "superstruct";
+import { CommentDto } from '../dtos/comments.dto';
 import articleCommentService from '../services/articleCommentService';
+import { plainToInstance } from 'class-transformer';
 
 
 //로그인한 사용자의 댓글 생성(article)
@@ -11,13 +11,11 @@ export async function createArticleComment(req: Request, res: Response, next: Ne
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, ArticleComment);
-
         const user = req.user.id;
         const articleId = Number(req.params.articleId);
-        const { content } = req.body;
+        const commentData = plainToInstance(CommentDto, req.body)
 
-        const newArticleComment = await articleCommentService.createArticleComment(user, articleId, { content });
+        const newArticleComment = await articleCommentService.createArticleComment(user, articleId, commentData);
 
         res.status(201).json(newArticleComment);
     } catch (error) {
@@ -33,13 +31,11 @@ export async function updateArticleComment(req: Request, res: Response, next: Ne
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, ArticleComment);
-
         const user = req.user.id;
         const commentId = Number(req.params.commentId);
-        const { content } = req.body;
+        const commentData = plainToInstance(CommentDto, req.body)
 
-        const updatedComment = await articleCommentService.updateArticleComment(user, commentId, { content });
+        const updatedComment = await articleCommentService.updateArticleComment(user, commentId, commentData);
         res.status(200).json(updatedComment);
     } catch (error) {
         console.error('Failed to update article comment:', error);

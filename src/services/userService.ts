@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import userRepository from "../repositories/userReporitory";
 import bcrypt from 'bcrypt';
 import { generateTokens } from '../lib/token';
-import { CreateUserDto, PatchUserDto, UserOutputDto } from "../types/user";
+import { CreateUserDto, PatchUserDto, UserOutputDto } from "../dtos/users.dto";
 
 export class UserService {
     async getUserProfile(userId: number): Promise<UserOutputDto> {

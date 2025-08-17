@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
-import { ArticleFindManyOptions } from "../types/article";
+import { ArticleFindManyOptions } from "../dtos/articles.dto";
 
 export class ArticleRepository {
 

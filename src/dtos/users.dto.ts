@@ -1,15 +1,49 @@
-import { object, string, size, partial, define, optional } from 'superstruct';
-import isEmail from 'is-email';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
-const Email = define<string>('Email', (value: unknown): value is string => {
-    return typeof value === 'string' && isEmail(value);
-});
+export class CreateUserDto {
+    @IsNotEmpty()
+    @IsEmail()
+    email: string = '';
 
-export const CreateUser = object({
-    email: Email,
-    nickname: size(string(), 1, 15),
-    password: size(string(), 6, 15),
-    image: optional(string())
-});
+    @IsNotEmpty()
+    @IsString()
+    @Length(1, 15)
+    nickname: string = '';
 
-export const PatchUser = partial(CreateUser);
+    @IsNotEmpty()
+    @IsString()
+    @Length(6, 15)
+    password: string = '';
+
+    @IsOptional()
+    @IsString()
+    image?: string;
+}
+
+export class PatchUserDto {
+    @IsOptional()
+    @IsEmail()
+    email?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(1, 15)
+    nickname?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(6, 15)
+    password?: string;
+
+    @IsOptional()
+    @IsString()
+    image?: string;
+}
+
+export interface UserOutputDto {
+    id: number;
+    email: string;
+    nickname: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

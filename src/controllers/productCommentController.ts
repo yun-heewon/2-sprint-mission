@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { ProductComment } from '../dtos/comments.dto';
-import { assert } from "superstruct";
 import productCommentService from '../services/productCommentService';
+import { CommentDto } from '../dtos/comments.dto';
+import { plainToInstance } from 'class-transformer';
 
 //로그인한 사용자의 댓글 생성(product)
 export async function createProductComment(req: Request, res: Response, next: NextFunction) {
@@ -10,13 +10,11 @@ export async function createProductComment(req: Request, res: Response, next: Ne
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, ProductComment);
-
         const user = req.user.id;
         const productId = Number(req.params.productId);
-        const { content } = req.body;
+        const commentData = plainToInstance(CommentDto, req.body)
 
-        const newProductComment = await productCommentService.createProductComment(user, productId, { content });
+        const newProductComment = await productCommentService.createProductComment(user, productId, commentData);
         res.status(201).json(newProductComment);
     } catch (error) {
         console.error('Failed to create product comment:', error);
@@ -31,14 +29,12 @@ export async function updateProductComment(req: Request, res: Response, next: Ne
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, ProductComment);
-
         const user = req.user.id;
         const commentId = Number(req.params.commentId);
-        const { content } = req.body;
+        const commentData = plainToInstance(CommentDto, req.body);
 
 
-        const updatedProductComment = await productCommentService.updateProductComment(user, commentId, { content });
+        const updatedProductComment = await productCommentService.updateProductComment(user, commentId, commentData);
         res.status(200).json(updatedProductComment);
     } catch (error) {
         console.error('Failed to update product comment:', error);

@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import productRepository from "../repositories/productRepository";
 import productLikeRepository from "../repositories/productLikeRepository";
-import { CreateProductDto, PatchProductDto, ProductListOptions, ProductOutput, ProductOutputWithLiked } from "../types/product";
+import { CreateProductDto, PatchProductDto, ProductListOptions, ProductOutput, ProductOutputWithLiked } from "../dtos/products.dto";
 
 export class ProductService {
 

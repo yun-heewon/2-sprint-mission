@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { assert } from "superstruct";
-import { CreateProduct, PatchProduct } from '../dtos/products.dto';
 import productService from '../services/productService';
+import { CreateProductDto, PatchProductDto } from '../dtos/products.dto';
+import { plainToInstance } from 'class-transformer';
 
 //로그인한 사용자의 상품 등록
 export async function createProduct(req: Request, res: Response, next: NextFunction) {
@@ -10,12 +10,10 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, CreateProduct);
-
-        const { name, description, price, tags } = req.body;
+        const productData = plainToInstance(CreateProductDto, req.body);
         const userId = req.user.id;
 
-        const newProduct = await productService.createProduct(userId, { name, description, price, tags });
+        const newProduct = await productService.createProduct(userId, productData);
         res.status(201).json({ message: 'Product created successfully', product: newProduct });
 
     } catch (error) {
@@ -30,12 +28,10 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
         if (!req.user) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
-        assert(req.body, PatchProduct);
-
 
         const productId = Number(req.params.id);
         const user = req.user.id;
-        const updateData = req.body;
+        const updateData = plainToInstance(PatchProductDto, req.body);
 
         const updatedProduct = await productService.updateProduct(user, productId, updateData);
 

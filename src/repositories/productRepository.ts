@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
-import { ProductFindManyOptions } from "../types/product";
+import { ProductFindManyOptions } from "../dtos/products.dto";
 
 export class ProductRepository {
 

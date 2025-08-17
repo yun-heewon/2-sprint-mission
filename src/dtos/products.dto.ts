@@ -1,10 +1,76 @@
-import { object, number, string, partial, array } from "superstruct";
+import { Prisma } from "@prisma/client";
+import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
-export const CreateProduct = object({
-    name: string(),
-    description: string(),
-    price: number(),
-    tags: array(string()),
-});
+export class CreateProductDto {
+    @IsNotEmpty()
+    @IsString()
+    name: string = '';
 
-export const PatchProduct = partial(CreateProduct)
+    @IsNotEmpty()
+    @IsString()
+    @Length(1, 1000)
+    description: string = '';
+    
+    @IsNotEmpty()
+    @IsInt()
+    price: number = 0;
+    
+    @IsNotEmpty()
+    @IsArray()
+    @IsString({ each: true })
+    tags: string[] = [];
+}
+
+export class PatchProductDto {
+    @IsOptional()
+    @IsString()
+    name?: string;
+
+    @IsOptional()
+    @IsString()
+    @Length(1, 1000)
+    description?: string;
+    
+    @IsOptional()
+    @IsInt()
+    price?: number;
+    
+    @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
+    tags?: string[];
+}
+
+export interface ProductOutput {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    tags: string[];
+    likeCount: number;
+    userId: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface ProductOutputWithLiked extends ProductOutput {
+    isLiked: boolean;
+}
+
+export type ProductFindManyOptions = {
+    skip?: number;
+    take?: number;
+    orderBy?: Prisma.ProductOrderByWithRelationInput
+};
+
+export type LikedProductFindManyOptions = {
+    skip?: number;
+    take?: number;
+    orderBy?: Prisma.ProductLikeOrderByWithRelationInput
+};
+
+export interface ProductListOptions {
+    offset?: number;
+    limit?: number;
+    order?: 'newest' | 'oldest';
+}

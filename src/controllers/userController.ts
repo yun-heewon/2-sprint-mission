@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { CreateUser, PatchUser } from '../dtos/users.dto';
-import { assert } from 'superstruct';
 import { setTokenCookies, clearTokenCookies } from '../lib/token';
 import fs from 'fs';
 import userService from '../services/userService';
-import { PatchUserDto } from '../types/user';
-
-
-
+import { CreateUserDto, PatchUserDto } from '../dtos/users.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 //정보 조회 
 export async function getUser(req: Request, res: Response, next: NextFunction) {
@@ -16,7 +13,6 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
         const userId = req.user.id;
-
         const userProfile = await userService.getUserProfile(userId)
         res.status(200).json(userProfile);
     } catch (error) {
@@ -29,12 +25,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 export async function register(req: Request, res: Response, next: NextFunction) {
     let uploadedFilePath: string | null = null;
     try {
-        assert(req.body, CreateUser);
-        const { email, nickname, password } = req.body;
-
-        if (!email || !nickname || !password) {
-            return res.status(400).json({ message: 'Email, nickname and password are required.' });
-        }
+        const userData = plainToInstance(CreateUserDto, req.body);
 
         let imageFilename: string | null = null;
         if (req.file) {
@@ -43,10 +34,10 @@ export async function register(req: Request, res: Response, next: NextFunction) 
         }
 
         const newUser = await userService.registerUser({
-            email,
-            nickname,
-            password,
-            image: imageFilename,
+            email: userData.email,
+            nickname: userData.nickname,
+            password: userData.password,
+            image: imageFilename ?? undefined,
         })
 
         const profileImageUrl = imageFilename ? `/uploads/${imageFilename}` : null;
@@ -102,9 +93,7 @@ export async function patchUser(req: Request, res: Response, next: NextFunction)
 
         const loggedInUser = req.user.id
 
-        assert(req.body, PatchUser);
-
-        const updateData: PatchUserDto = req.body as PatchUserDto;
+        const updateData = plainToInstance(PatchUserDto, req.body)
 
         const updatedUser = await userService.updateUser(loggedInUser, updateData);
 

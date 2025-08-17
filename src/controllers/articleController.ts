@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { assert } from "superstruct";
-import { CreateArticle, PatchArticle } from '../dtos/articles.dto';
 import articleService from '../services/articleService';
+import { plainToInstance } from 'class-transformer';
+import { CreateArticlesDto, PatchArticleDto } from '../dtos/articles.dto';
 
 //로그인한 사용자의 게시글 등록
 
@@ -11,12 +11,10 @@ export async function createArticle(req: Request, res: Response, next: NextFunct
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, CreateArticle);
-
-        const { title, content } = req.body;
+        const articleData = plainToInstance(CreateArticlesDto, req.body);
         const userId = req.user.id;
 
-        const newArticle = await articleService.createArticle(userId, { title, content });
+        const newArticle = await articleService.createArticle(userId, articleData);
 
         res.status(201).json({ message: 'Article created successfully', article: newArticle });
     } catch (error) {
@@ -32,11 +30,9 @@ export async function updateArticle(req: Request, res: Response, next: NextFunct
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
-        assert(req.body, PatchArticle);
-
         const articleId = Number(req.params.id);
         const user = req.user.id
-        const updateData = req.body;
+        const updateData = plainToInstance(PatchArticleDto, req.body);
 
         const updatedArticle = await articleService.updateArticle(articleId, user, updateData);
 

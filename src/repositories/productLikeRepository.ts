@@ -1,5 +1,5 @@
+import { LikedProductFindManyOptions } from "../dtos/products.dto";
 import prisma from "../lib/prisma";
-import { LikedProductFindManyOptions } from "../types/product";
 
 export class ProductLikeRepository {
 

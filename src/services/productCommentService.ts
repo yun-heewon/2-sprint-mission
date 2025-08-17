@@ -2,7 +2,16 @@ import { Prisma } from "@prisma/client";
 import userReporitory from "../repositories/userReporitory";
 import productRepository from "../repositories/productRepository";
 import productCommentRepository from "../repositories/productCommentRepository";
-import { CommentDto, ProductCommentOutput } from "../types/comment";
+import { CommentDto } from "../dtos/comments.dto";
+
+interface ProductCommentOutput {
+    id: number;
+    content: string;
+    userId: number;
+    productId: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 export class ProductCommentService {
     async createProductComment(userId: number, productId: number, commentData: CommentDto): Promise<ProductCommentOutput> {

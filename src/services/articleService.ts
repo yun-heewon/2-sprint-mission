@@ -1,11 +1,10 @@
 import { Prisma } from "@prisma/client";
 import articleReporitory from "../repositories/articleReporitory";
 import articleLikeReporitory from "../repositories/articleLikeReporitory";
-import { ArticleListOptions, ArticleOutput, ArticleOutputWithLiked, CreateArticleDto, PatchArticleDto } from "../types/article";
-
+import { ArticleListOptions, ArticleOutput, ArticleOutputWithLiked, CreateArticlesDto, PatchArticleDto } from "../dtos/articles.dto";
 
 export class ArticleService {
-    async createArticle(userId: number, articleData: CreateArticleDto): Promise<ArticleOutput> {
+    async createArticle(userId: number, articleData: CreateArticlesDto): Promise<ArticleOutput> {
 
         const createData: Prisma.ArticleCreateInput = {
             title: articleData.title,

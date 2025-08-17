@@ -3,8 +3,8 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser7@sample.com",
-  "nickname": "testuser7",
+  "email": "testuser1@sample.com",
+  "nickname": "testuser1",
   "password": "123123"
 }
 
@@ -14,7 +14,7 @@ POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
-  "email": "testuser7@sample.com",
+  "email": "testuser1@sample.com",
   "password": "123123"
 }
 
@@ -24,7 +24,7 @@ PATCH http://localhost:3000/users/me
 Content-Type: application/json
 
 {
-  "nickname": "테스트유저5"
+  "nickname": "테스트하는유저입니다"
 }
 
 
@@ -49,13 +49,13 @@ POST http://localhost:3000/articles/create
 Content-Type: application/json
 
 {
-  "title": "안녕하세요",
+  "title": "테스트입니다",
   "content": "안녕하세요 ^^"
 }
 
 
 ### 게시글 수정
-PATCH  http://localhost:3000/articles/update/2
+PATCH  http://localhost:3000/articles/update/1
 Content-Type: application/json
 
 {
@@ -90,7 +90,7 @@ Content-Type: application/json
 
 ### 상품 수정
 
-PATCH http://localhost:3000/products/update/4
+PATCH http://localhost:3000/products/update/1
 Content-Type: application/json
 
 {

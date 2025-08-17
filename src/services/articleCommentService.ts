@@ -2,7 +2,16 @@ import { Prisma } from "@prisma/client";
 import articleCommentRepository from "../repositories/articleCommentRepository";
 import articleReporitory from "../repositories/articleReporitory";
 import userReporitory from "../repositories/userReporitory";
-import { ArticleCommentOutput, CommentDto } from "../types/comment";
+import { CommentDto } from "../dtos/comments.dto";
+
+interface ArticleCommentOutput {
+    id: number;
+    content: string;
+    userId: number;
+    articleId: number;
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 export class ArticleCommentService {
     async createArticleComment(userId: number, articleId: number, commentData: CommentDto): Promise<ArticleCommentOutput> {
