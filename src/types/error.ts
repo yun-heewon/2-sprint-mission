@@ -1,6 +1,5 @@
 export interface HttpError extends Error {
-    status?: number;
-    statusCode?: number;
-    expose?: boolean;
+  status?: number;
+  statusCode?: number;
+  expose?: boolean;
 }
-

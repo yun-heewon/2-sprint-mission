@@ -1,12 +1,37 @@
-import express from 'express';
-const router = express.Router();
-import passport from '../lib/passport/index';
-import { createArticleComment, updateArticleComment, deleteArticleComment } from '../controllers/articleCommentController';
-import { validateDto } from '../lib/validator';
-import { CommentDto } from '../dtos/comments.dto';
+import { Router } from "express";
+import passport from "../lib/passport/index";
+import { validateDto } from "../lib/validator";
+import { CommentDto } from "../dtos/comments.dto";
+import { ArtricleCommentController } from "../controllers/articleCommentController";
+import { ArticleCommentService } from "../services/articleCommentService";
+import { Server as SocketIOServer } from "socket.io";
 
-router.post('/:articleId/create', passport.authenticate('access-token', { session: false }), validateDto(CommentDto), createArticleComment);
-router.patch('/:commentId/update', passport.authenticate('access-token', { session: false }), validateDto(CommentDto), updateArticleComment);
-router.delete('/:commentId', passport.authenticate('access-token', { session: false }), deleteArticleComment);
+const AtricleCommentRouter = (io: SocketIOServer): Router => {
+  const router = Router();
 
-export default router;
+  const articleCommentService = new ArticleCommentService(io);
+  const articleCommentController = new ArtricleCommentController(
+    articleCommentService
+  );
+
+  router.post(
+    "/:articleId/create",
+    passport.authenticate("access-token", { session: false }),
+    validateDto(CommentDto),
+    articleCommentController.createArticleComment
+  );
+  router.patch(
+    "/:commentId/update",
+    passport.authenticate("access-token", { session: false }),
+    validateDto(CommentDto),
+    articleCommentController.updateArticleComment
+  );
+  router.delete(
+    "/:commentId",
+    passport.authenticate("access-token", { session: false }),
+    articleCommentController.deleteArticleComment
+  );
+
+  return router;
+};
+export default AtricleCommentRouter;

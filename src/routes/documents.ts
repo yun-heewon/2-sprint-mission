@@ -1,10 +1,23 @@
-import express from 'express';
-const router = express.Router();
-import upload from '../lib/upload';
-import { getDocument, createDocument, deleteDocument } from '../controllers/documentController';
+import { Router } from "express";
+import upload from "../lib/upload";
+import { DocumentService } from "../services/documentService";
+import { DocumentController } from "../controllers/documentController";
 
-router.get('/download/:id', getDocument);
-router.post('/upload', upload.single('file'), createDocument);
-router.delete('/:id', deleteDocument);
+const DocumentRouter = (): Router => {
+  const router = Router();
 
-export default router;
+  const documentService = new DocumentService();
+  const documentController = new DocumentController(documentService);
+
+  router.get("/download/:id", documentController.getDocument);
+  router.post(
+    "/upload",
+    upload.single("file"),
+    documentController.createDocument
+  );
+  router.delete("/:id", documentController.deleteDocument);
+
+  return router;
+};
+
+export default DocumentRouter;
