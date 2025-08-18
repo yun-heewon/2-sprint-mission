@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { setTokenCookies, clearTokenCookies } from "../lib/token";
 import fs from "fs";
-import userService, { UserService } from "../services/userService";
+import { UserService } from "../services/userService";
 import { CreateUserDto, PatchUserDto } from "../dtos/users.dto";
 import { plainToInstance } from "class-transformer";
-import { throws } from "assert";
 
 export class UserController {
   private userService: UserService;
@@ -75,12 +74,10 @@ export class UserController {
         error instanceof Error &&
         error.message.includes("Validation Error")
       ) {
-        return res
-          .status(400)
-          .json({
-            message: "Invalid registration data",
-            errors: error.message,
-          });
+        return res.status(400).json({
+          message: "Invalid registration data",
+          errors: error.message,
+        });
       }
       next(error);
     }

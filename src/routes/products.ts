@@ -5,11 +5,20 @@ import { CreateProductDto, PatchProductDto } from "../dtos/products.dto";
 import { validateDto } from "../lib/validator";
 import { ProductService } from "../services/productService";
 import { ProductController } from "../controllers/productController";
+import { ProductRepository } from "../repositories/productRepository";
+import prisma from "../lib/prisma";
+import { ProductLikeRepository } from "../repositories/productLikeRepository";
 
 const ProductRouter = (): Router => {
   const router = Router();
 
-  const productService = new ProductService();
+  const productRepository = new ProductRepository(prisma);
+  const productLikeRepository = new ProductLikeRepository(prisma);
+
+  const productService = new ProductService(
+    productRepository,
+    productLikeRepository
+  );
   const productController = new ProductController(productService);
 
   router.post(

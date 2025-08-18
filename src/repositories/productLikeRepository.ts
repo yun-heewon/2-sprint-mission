@@ -1,68 +1,72 @@
+import { PrismaClient } from "@prisma/client";
 import { LikedProductFindManyOptions } from "../dtos/products.dto";
-import prisma from "../lib/prisma";
 
 export class ProductLikeRepository {
+  private prisma: PrismaClient;
 
-    async findManyByUserId(userId: number) {
-        return prisma.productLike.findMany({
-            where: {
-                userId
-            },
-            select: { productId: true },
-        });
-    };
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
-    async findLikedProductsByUserId(userId: number, options?: LikedProductFindManyOptions) {
-        return prisma.productLike.findMany({
-            where: {
-                userId
-            },
-            skip: options?.skip,
-            take: options?.take,
-            orderBy: options?.orderBy,
-            include: {
-                product: {
-                    select: {
-                        id: true,
-                        name: true,
-                        description: true,
-                        price: true,
-                        tags: true,
-                        userId: true,
-                        likeCount: true,
-                        createdAt: true,
-                        updatedAt: true,
-                    }
-                }
-            }
-        });
-    };
+  async findManyByUserId(userId: number) {
+    return this.prisma.productLike.findMany({
+      where: {
+        userId,
+      },
+      select: { productId: true },
+    });
+  }
 
-    async checkingProductLikeStatus(userId: number, productId: number) {
-        return prisma.productLike.findFirst({
-            where: {
-                userId,
-                productId
-            },
-        });
-    }
+  async findLikedProductsByUserId(
+    userId: number,
+    options?: LikedProductFindManyOptions
+  ) {
+    return this.prisma.productLike.findMany({
+      where: {
+        userId,
+      },
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: options?.orderBy,
+      include: {
+        product: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            tags: true,
+            userId: true,
+            likeCount: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+  }
 
-    async deleteProductLike(id: number) {
-        return prisma.productLike.delete({
-            where: { id },
-        });
-    }
+  async checkingProductLikeStatus(userId: number, productId: number) {
+    return this.prisma.productLike.findFirst({
+      where: {
+        userId,
+        productId,
+      },
+    });
+  }
 
-    async uploadProductLike(userId: number, productId: number) {
-        return prisma.productLike.create({
-            data: {
-                userId,
-                productId
-            },
-        });
-    }
+  async deleteProductLike(id: number) {
+    return this.prisma.productLike.delete({
+      where: { id },
+    });
+  }
 
+  async uploadProductLike(userId: number, productId: number) {
+    return this.prisma.productLike.create({
+      data: {
+        userId,
+        productId,
+      },
+    });
+  }
 }
-
-
-export default new ProductLikeRepository();

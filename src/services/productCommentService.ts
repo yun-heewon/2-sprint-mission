@@ -1,9 +1,9 @@
 import { Prisma } from "@prisma/client";
-import userReporitory from "../repositories/userReporitory";
-import productRepository from "../repositories/productRepository";
-import productCommentRepository from "../repositories/productCommentRepository";
+import { UserRepository } from "../repositories/userReporitory";
 import { CommentDto } from "../dtos/comments.dto";
 import { Server as SocketIOServer } from "socket.io";
+import { ProductRepository } from "../repositories/productRepository";
+import { ProductCommentRepository } from "../repositories/productCommentRepository";
 
 interface ProductCommentOutput {
   id: number;
@@ -16,20 +16,32 @@ interface ProductCommentOutput {
 
 export class ProductCommentService {
   private io: SocketIOServer;
-  constructor(io: SocketIOServer) {
+  private userRepository: UserRepository;
+  private productRepository: ProductRepository;
+  private productCommentRepository: ProductCommentRepository;
+
+  constructor(
+    io: SocketIOServer,
+    userRepository: UserRepository,
+    productRepository: ProductRepository,
+    productCommentRepository: ProductCommentRepository
+  ) {
     this.io = io;
+    this.userRepository = userRepository;
+    this.productRepository = productRepository;
+    this.productCommentRepository = productCommentRepository;
   }
   async createProductComment(
     userId: number,
     productId: number,
     commentData: CommentDto
   ): Promise<ProductCommentOutput> {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const product = await productRepository.findById(productId);
+    const product = await this.productRepository.findById(productId);
     if (!product) {
       throw new Error("Product not found");
     }
@@ -48,7 +60,9 @@ export class ProductCommentService {
       },
     };
 
-    const newProductComment = await productCommentRepository.create(createData);
+    const newProductComment = await this.productCommentRepository.create(
+      createData
+    );
     return { ...newProductComment };
   }
 
@@ -57,12 +71,12 @@ export class ProductCommentService {
     productCommentId: number,
     updateData: CommentDto
   ): Promise<ProductCommentOutput> {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const productComment = await productCommentRepository.findById(
+    const productComment = await this.productCommentRepository.findById(
       productCommentId
     );
     if (!productComment) {
@@ -77,7 +91,7 @@ export class ProductCommentService {
       content: updateData.content,
     };
 
-    const updateProductComment = await productCommentRepository.update(
+    const updateProductComment = await this.productCommentRepository.update(
       productCommentId,
       productCommentUpdateData
     );
@@ -86,7 +100,7 @@ export class ProductCommentService {
   }
 
   async deleteProductComment(userId: number, productCommentId: number) {
-    const productComment = await productCommentRepository.findById(
+    const productComment = await this.productCommentRepository.findById(
       productCommentId
     );
     if (!productComment) {
@@ -97,7 +111,7 @@ export class ProductCommentService {
       throw new Error("You are not authorized to delete this product comment.");
     }
 
-    await productCommentRepository.delete(productCommentId);
+    await this.productCommentRepository.delete(productCommentId);
 
     return { message: "Product comment deleted successfully" };
   }

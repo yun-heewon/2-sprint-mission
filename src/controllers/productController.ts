@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import productService, { ProductService } from "../services/productService";
+import { ProductService } from "../services/productService";
 import { CreateProductDto, PatchProductDto } from "../dtos/products.dto";
 import { plainToInstance } from "class-transformer";
 

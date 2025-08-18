@@ -1,24 +1,26 @@
-import { Prisma } from '@prisma/client';
-import prisma from '../lib/prisma';
+import { Prisma, PrismaClient } from "@prisma/client";
 
 export class DocumentRepository {
-    async findById(id: number) {
-        return prisma.document.findUnique({
-            where: { id },
-        });
-    }
+  private prisma: PrismaClient;
 
-    async create(data: Prisma.DocumentCreateInput) {
-        return prisma.document.create({
-            data,
-        })
-    }
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
+  async findById(id: number) {
+    return this.prisma.document.findUnique({
+      where: { id },
+    });
+  }
 
-    async delete(id: number) {
-        return prisma.document.delete({
-            where: { id },
-        });
-    }
+  async create(data: Prisma.DocumentCreateInput) {
+    return this.prisma.document.create({
+      data,
+    });
+  }
+
+  async delete(id: number) {
+    return this.prisma.document.delete({
+      where: { id },
+    });
+  }
 }
-
-export default new DocumentRepository();

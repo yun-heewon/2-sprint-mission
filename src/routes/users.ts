@@ -2,17 +2,19 @@ import express, { Router } from "express";
 const router = express.Router();
 import passport from "../lib/passport/index";
 import upload from "../lib/upload";
-
 import { refreshTokens } from "../lib/token";
 import { validateDto } from "../lib/validator";
 import { CreateUserDto, PatchUserDto } from "../dtos/users.dto";
 import { UserService } from "../services/userService";
 import { UserController } from "../controllers/userController";
+import { UserRepository } from "../repositories/userReporitory";
+import prisma from "../lib/prisma";
 
 const UserRouter = (): Router => {
   const router = Router();
 
-  const userService = new UserService();
+  const userReporitory = new UserRepository(prisma);
+  const userService = new UserService(userReporitory);
   const userController = new UserController(userService);
 
   router.get(

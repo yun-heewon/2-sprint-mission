@@ -5,11 +5,24 @@ import { validateDto } from "../lib/validator";
 import { Server as SocketIOServer } from "socket.io";
 import { ProductCommentService } from "../services/productCommentService";
 import { ProductCommentController } from "../controllers/productCommentController";
+import { UserRepository } from "../repositories/userReporitory";
+import prisma from "../lib/prisma";
+import { ProductRepository } from "../repositories/productRepository";
+import { ProductCommentRepository } from "../repositories/productCommentRepository";
 
 const ProductCommentRouter = (io: SocketIOServer): Router => {
   const router = Router();
 
-  const productCommentService = new ProductCommentService(io);
+  const userRepository = new UserRepository(prisma);
+  const productRepository = new ProductRepository(prisma);
+  const productCommentRepository = new ProductCommentRepository(prisma);
+
+  const productCommentService = new ProductCommentService(
+    io,
+    userRepository,
+    productRepository,
+    productCommentRepository
+  );
   const productCommentController = new ProductCommentController(
     productCommentService
   );

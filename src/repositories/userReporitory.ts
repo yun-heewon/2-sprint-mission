@@ -1,45 +1,46 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 export class UserRepository {
+  private prisma: PrismaClient;
 
-    async findById(id: number) {
-        return prisma.user.findUnique({
-            where: { id }
-        })
-    };
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
-    async findByEmail(email: string) {
-        return prisma.user.findUnique({
-            where: { email }
-        });
-    }
+  async findById(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
 
-    async findByNickname(nickname: string) {
-        return prisma.user.findUnique({
-            where: { nickname }
-        });
-    }
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
 
-    async create(data: Prisma.UserCreateInput) {
-        return prisma.user.create({
-            data,
-        });
-    }
+  async findByNickname(nickname: string) {
+    return this.prisma.user.findUnique({
+      where: { nickname },
+    });
+  }
 
-    async update(id: number, data: Prisma.UserUpdateInput) {
-        return prisma.user.update({
-            where: { id },
-            data,
-        });
-    }
+  async create(data: Prisma.UserCreateInput) {
+    return this.prisma.user.create({
+      data,
+    });
+  }
 
-    async delete(id: number) {
-        return prisma.user.delete({
-            where: { id },
-        });
-    }
+  async update(id: number, data: Prisma.UserUpdateInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
 
+  async delete(id: number) {
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
 }
-
-export default new UserRepository();

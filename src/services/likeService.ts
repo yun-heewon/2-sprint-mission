@@ -1,46 +1,64 @@
-import userReporitory from "../repositories/userReporitory";
-import productRepository from "../repositories/productRepository";
-import articleReporitory from "../repositories/articleReporitory";
-import productLikeRepository from "../repositories/productLikeRepository";
-import articleLikeReporitory from "../repositories/articleLikeReporitory";
+import { UserRepository } from "../repositories/userReporitory";
+import { ProductRepository } from "../repositories/productRepository";
+import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import { Server as SocketIOServer } from "socket.io";
+import { ArticleRepository } from "../repositories/articleReporitory";
+import { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
 
 export class LikeService {
   private io: SocketIOServer;
-  constructor(io: SocketIOServer) {
+  private userRepository: UserRepository;
+  private productRepository: ProductRepository;
+  private productLikeRepository: ProductLikeRepository;
+  private articleRepository: ArticleRepository;
+  private articleLikeRepository: ArticleLikeRepository;
+  constructor(
+    io: SocketIOServer,
+    userRepository: UserRepository,
+    productRepository: ProductRepository,
+    productLikeRepository: ProductLikeRepository,
+    articleRepository: ArticleRepository,
+    articleLikeRepository: ArticleLikeRepository
+  ) {
     this.io = io;
+    this.userRepository = userRepository;
+    this.productRepository = productRepository;
+    this.productLikeRepository = productLikeRepository;
+    this.articleRepository = articleRepository;
+    this.articleLikeRepository = articleLikeRepository;
   }
 
   async updateProductLike(userId: number, productId: number) {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const product = await productRepository.findById(productId);
+    const product = await this.productRepository.findById(productId);
     if (!product) {
       throw new Error("Product not found");
     }
 
-    const existingLike = await productLikeRepository.checkingProductLikeStatus(
-      userId,
-      productId
-    );
+    const existingLike =
+      await this.productLikeRepository.checkingProductLikeStatus(
+        userId,
+        productId
+      );
     let message: string;
     let isLiked: boolean;
     let likeCount: number;
 
     if (existingLike) {
-      await productLikeRepository.deleteProductLike(existingLike.id);
-      const updatedProduct = await productRepository.updateLikeDecrease(
+      await this.productLikeRepository.deleteProductLike(existingLike.id);
+      const updatedProduct = await this.productRepository.updateLikeDecrease(
         productId
       );
       message = "Product unliked successfully";
       isLiked = false;
       likeCount = updatedProduct.likeCount;
     } else {
-      await productLikeRepository.uploadProductLike(userId, productId);
-      const updatedProduct = await productRepository.updateLikeIncrease(
+      await this.productLikeRepository.uploadProductLike(userId, productId);
+      const updatedProduct = await this.productRepository.updateLikeIncrease(
         productId
       );
       message = "Product liked successfully";
@@ -51,35 +69,36 @@ export class LikeService {
   }
 
   async updateArticleLike(userId: number, articleId: number) {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const article = await articleReporitory.findById(articleId);
+    const article = await this.articleRepository.findById(articleId);
     if (!article) {
       throw new Error("Article not found");
     }
 
-    const existingLike = await articleLikeReporitory.checkingArticleLikeStatus(
-      userId,
-      articleId
-    );
+    const existingLike =
+      await this.articleLikeRepository.checkingArticleLikeStatus(
+        userId,
+        articleId
+      );
     let message: string;
     let isLiked: boolean;
     let likeCount: number;
 
     if (existingLike) {
-      await articleLikeReporitory.deleteArticleLike(existingLike.id);
-      const updatedArticle = await articleReporitory.updateLikeDecrease(
+      await this.articleLikeRepository.deleteArticleLike(existingLike.id);
+      const updatedArticle = await this.articleRepository.updateLikeDecrease(
         articleId
       );
       message = "Article unliked successfully";
       isLiked = false;
       likeCount = updatedArticle.likeCount;
     } else {
-      await articleLikeReporitory.uploadArticleLike(userId, articleId);
-      const updatedArticle = await articleReporitory.updateLikeIncrease(
+      await this.articleLikeRepository.uploadArticleLike(userId, articleId);
+      const updatedArticle = await this.articleRepository.updateLikeIncrease(
         articleId
       );
       message = "Article liked successfully";

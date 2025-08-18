@@ -1,9 +1,9 @@
 import { Prisma } from "@prisma/client";
-import articleCommentRepository from "../repositories/articleCommentRepository";
-import articleReporitory from "../repositories/articleReporitory";
-import userReporitory from "../repositories/userReporitory";
+import { ArticleRepository } from "../repositories/articleReporitory";
+import { UserRepository } from "../repositories/userReporitory";
 import { CommentDto } from "../dtos/comments.dto";
 import { Server as SocketIOServer } from "socket.io";
+import { ArticleCommentRepository } from "../repositories/articleCommentRepository";
 
 interface ArticleCommentOutput {
   id: number;
@@ -16,8 +16,19 @@ interface ArticleCommentOutput {
 
 export class ArticleCommentService {
   private io: SocketIOServer;
-  constructor(io: SocketIOServer) {
+  private userRepository: UserRepository;
+  private articleRepository: ArticleRepository;
+  private articleCommentRepository: ArticleCommentRepository;
+  constructor(
+    io: SocketIOServer,
+    userRepository: UserRepository,
+    articleRepository: ArticleRepository,
+    articleCommentRepository: ArticleCommentRepository
+  ) {
     this.io = io;
+    this.userRepository = userRepository;
+    this.articleRepository = articleRepository;
+    this.articleCommentRepository = articleCommentRepository;
   }
 
   async createArticleComment(
@@ -25,12 +36,12 @@ export class ArticleCommentService {
     articleId: number,
     commentData: CommentDto
   ): Promise<ArticleCommentOutput> {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const article = await articleReporitory.findById(articleId);
+    const article = await this.articleRepository.findById(articleId);
     if (!article) {
       throw new Error("Article not found");
     }
@@ -49,7 +60,9 @@ export class ArticleCommentService {
       },
     };
 
-    const newArticleComment = await articleCommentRepository.create(createData);
+    const newArticleComment = await this.articleCommentRepository.create(
+      createData
+    );
 
     /*
      * 알림 전송
@@ -76,12 +89,12 @@ export class ArticleCommentService {
     articleCommentId: number,
     updateComment: CommentDto
   ): Promise<ArticleCommentOutput> {
-    const user = await userReporitory.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    const articleComment = await articleCommentRepository.findById(
+    const articleComment = await this.articleCommentRepository.findById(
       articleCommentId
     );
     if (!articleComment) {
@@ -96,7 +109,7 @@ export class ArticleCommentService {
       content: updateComment.content,
     };
 
-    const updateArticleComment = await articleCommentRepository.update(
+    const updateArticleComment = await this.articleCommentRepository.update(
       articleCommentId,
       articleCommentUpdateDate
     );
@@ -105,7 +118,7 @@ export class ArticleCommentService {
   }
 
   async deleteArticleComment(userId: number, articleCommentId: number) {
-    const articleComment = await articleCommentRepository.findById(
+    const articleComment = await this.articleCommentRepository.findById(
       articleCommentId
     );
     if (!articleComment) {
@@ -116,7 +129,7 @@ export class ArticleCommentService {
       throw new Error("You are not authorized to delete this article comment.");
     }
 
-    await articleCommentRepository.delete(articleCommentId);
+    await this.articleCommentRepository.delete(articleCommentId);
 
     return { message: "Article comment deleted successfully" };
   }

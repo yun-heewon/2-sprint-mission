@@ -2,11 +2,14 @@ import { Router } from "express";
 import upload from "../lib/upload";
 import { DocumentService } from "../services/documentService";
 import { DocumentController } from "../controllers/documentController";
+import { DocumentRepository } from "../repositories/documentRepository";
+import prisma from "../lib/prisma";
 
 const DocumentRouter = (): Router => {
   const router = Router();
 
-  const documentService = new DocumentService();
+  const documentRepository = new DocumentRepository(prisma);
+  const documentService = new DocumentService(documentRepository);
   const documentController = new DocumentController(documentService);
 
   router.get("/download/:id", documentController.getDocument);

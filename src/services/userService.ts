@@ -1,12 +1,18 @@
 import { Prisma } from "@prisma/client";
-import userRepository from "../repositories/userReporitory";
+import { UserRepository } from "../repositories/userReporitory";
 import bcrypt from "bcrypt";
 import { generateTokens } from "../lib/token";
 import { CreateUserDto, PatchUserDto, UserOutputDto } from "../dtos/users.dto";
 
 export class UserService {
+  private userRepository: UserRepository;
+
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
+  }
+
   async getUserProfile(userId: number): Promise<UserOutputDto> {
-    const user = await userRepository.findById(userId);
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new Error("User not found");
     }
@@ -22,7 +28,7 @@ export class UserService {
 
   async registerUser(userData: CreateUserDto): Promise<UserOutputDto> {
     //1. 이메일 중복 확인
-    const existingEmail = await userRepository.findByEmail(userData.email);
+    const existingEmail = await this.userRepository.findByEmail(userData.email);
     if (existingEmail) {
       throw new Error(
         "This Email already exist! Please Change to something else"
@@ -30,7 +36,7 @@ export class UserService {
     }
 
     //2. 닉네임 중복 확인
-    const existingNickname = await userRepository.findByNickname(
+    const existingNickname = await this.userRepository.findByNickname(
       userData.nickname
     );
     if (existingNickname) {
@@ -43,7 +49,7 @@ export class UserService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const newUser = await userRepository.create({
+    const newUser = await this.userRepository.create({
       email: userData.email,
       nickname: userData.nickname,
       password: hashedPassword,
@@ -92,7 +98,10 @@ export class UserService {
         userUpdateData.image = updateData.image;
       }
 
-      const updatedUser = await userRepository.update(userId, userUpdateData);
+      const updatedUser = await this.userRepository.update(
+        userId,
+        userUpdateData
+      );
 
       if (!updatedUser) {
         throw new Error("User not found or update failed");
@@ -119,14 +128,12 @@ export class UserService {
   }
 
   async deleteUser(userId: number) {
-    const existingUser = await userRepository.findById(userId);
+    const existingUser = await this.userRepository.findById(userId);
     if (!existingUser) {
       throw new Error("User not found");
     }
 
-    await userRepository.delete(userId);
+    await this.userRepository.delete(userId);
     return { message: "User deleted successfully" };
   }
 }
-
-export default new UserService();

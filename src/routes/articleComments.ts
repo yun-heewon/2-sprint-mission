@@ -5,11 +5,24 @@ import { CommentDto } from "../dtos/comments.dto";
 import { ArtricleCommentController } from "../controllers/articleCommentController";
 import { ArticleCommentService } from "../services/articleCommentService";
 import { Server as SocketIOServer } from "socket.io";
+import { UserRepository } from "../repositories/userReporitory";
+import { ArticleRepository } from "../repositories/articleReporitory";
+import prisma from "../lib/prisma";
+import { ArticleCommentRepository } from "../repositories/articleCommentRepository";
 
 const AtricleCommentRouter = (io: SocketIOServer): Router => {
   const router = Router();
 
-  const articleCommentService = new ArticleCommentService(io);
+  const userRepository = new UserRepository(prisma);
+  const articleRepository = new ArticleRepository(prisma);
+  const articleCommentRepository = new ArticleCommentRepository(prisma);
+
+  const articleCommentService = new ArticleCommentService(
+    io,
+    userRepository,
+    articleRepository,
+    articleCommentRepository
+  );
   const articleCommentController = new ArtricleCommentController(
     articleCommentService
   );

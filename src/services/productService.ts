@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import productRepository from "../repositories/productRepository";
-import productLikeRepository from "../repositories/productLikeRepository";
+import { ProductRepository } from "../repositories/productRepository";
+import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import {
   CreateProductDto,
   PatchProductDto,
@@ -10,6 +10,16 @@ import {
 } from "../dtos/products.dto";
 
 export class ProductService {
+  private productRepository: ProductRepository;
+  private productLikeRepository: ProductLikeRepository;
+
+  constructor(
+    productRepository: ProductRepository,
+    productLikeRepository: ProductLikeRepository
+  ) {
+    this.productRepository = productRepository;
+    this.productLikeRepository = productLikeRepository;
+  }
   async createProduct(
     userId: number,
     productData: CreateProductDto
@@ -24,7 +34,7 @@ export class ProductService {
       },
     };
 
-    const newProduct = await productRepository.create(createData);
+    const newProduct = await this.productRepository.create(createData);
 
     return { ...newProduct };
   }
@@ -34,7 +44,7 @@ export class ProductService {
     productId: number,
     productData: PatchProductDto
   ): Promise<ProductOutput> {
-    const product = await productRepository.findById(productId);
+    const product = await this.productRepository.findById(productId);
 
     if (!product) {
       throw new Error("Product not found");
@@ -51,7 +61,7 @@ export class ProductService {
       tags: productData.tags,
     };
 
-    const updateProduct = await productRepository.update(
+    const updateProduct = await this.productRepository.update(
       productId,
       productUpdateData
     );
@@ -63,7 +73,7 @@ export class ProductService {
   }
 
   async deleteProduct(userId: number, productId: number) {
-    const product = await productRepository.findById(productId);
+    const product = await this.productRepository.findById(productId);
     if (!product) {
       throw new Error("Product not found");
     }
@@ -72,7 +82,7 @@ export class ProductService {
       throw new Error("Unauthorized to delete this product");
     }
 
-    await productRepository.delete(productId);
+    await this.productRepository.delete(productId);
 
     return { message: "Product deleted successfully" };
   }
@@ -91,7 +101,7 @@ export class ProductService {
         orderBy = { createdAt: "desc" };
         break;
     }
-    const myProducts = await productRepository.findManyByUserId(userId, {
+    const myProducts = await this.productRepository.findManyByUserId(userId, {
       skip: options.offset,
       take: options.limit,
       orderBy: orderBy,
@@ -125,14 +135,16 @@ export class ProductService {
     }
 
     //상품 목록 가져오기
-    const getProductList = await productRepository.findManyProducts({
+    const getProductList = await this.productRepository.findManyProducts({
       skip: options.offset,
       take: options.limit,
       orderBy: orderBy,
     });
 
     //로그인한 사용자가 좋아요 누른 상품 목록 가져오기
-    const myLikedProduct = await productLikeRepository.findManyByUserId(userId);
+    const myLikedProduct = await this.productLikeRepository.findManyByUserId(
+      userId
+    );
 
     // 좋아요 누른 상품 ID를 Set으로 변환
     const likedProductIds = new Set(
@@ -171,14 +183,12 @@ export class ProductService {
         break;
     }
 
-    const likedProducts = await productLikeRepository.findLikedProductsByUserId(
-      userId,
-      {
+    const likedProducts =
+      await this.productLikeRepository.findLikedProductsByUserId(userId, {
         skip: options.offset,
         take: options.limit,
         orderBy: orderBy,
-      }
-    );
+      });
 
     const productsWithLikedStatus: ProductOutputWithLiked[] = likedProducts.map(
       (item) => ({
@@ -197,5 +207,3 @@ export class ProductService {
     return productsWithLikedStatus;
   }
 }
-
-export default new ProductService();

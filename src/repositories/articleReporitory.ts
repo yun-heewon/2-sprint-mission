@@ -1,73 +1,74 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { ArticleFindManyOptions } from "../dtos/articles.dto";
 
 export class ArticleRepository {
+  private prisma: PrismaClient;
 
-    async findById(id: number) {
-        return prisma.article.findUnique({
-            where: { id }
-        });
-    }
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
-    async findManyArticles(options?: ArticleFindManyOptions) {
-        return prisma.article.findMany({
-            skip: options?.skip,
-            take: options?.take,
-            orderBy: options?.orderBy,
-        })
-    }
+  async findById(id: number) {
+    return this.prisma.article.findUnique({
+      where: { id },
+    });
+  }
 
-    async findManyByUserId(userId: number, options?: ArticleFindManyOptions) {
-        return prisma.article.findMany({
-            where: { userId },
-            skip: options?.skip,
-            take: options?.take,
-            orderBy: options?.orderBy,
-        });
-    }
+  async findManyArticles(options?: ArticleFindManyOptions) {
+    return this.prisma.article.findMany({
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: options?.orderBy,
+    });
+  }
 
+  async findManyByUserId(userId: number, options?: ArticleFindManyOptions) {
+    return this.prisma.article.findMany({
+      where: { userId },
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: options?.orderBy,
+    });
+  }
 
-    async create(data: Prisma.ArticleCreateInput) {
-        return prisma.article.create({
-            data,
-        });
-    }
+  async create(data: Prisma.ArticleCreateInput) {
+    return this.prisma.article.create({
+      data,
+    });
+  }
 
-    async update(id: number, data: Prisma.ArticleUpdateInput) {
-        return prisma.article.update({
-            where: { id },
-            data,
-        });
-    }
+  async update(id: number, data: Prisma.ArticleUpdateInput) {
+    return this.prisma.article.update({
+      where: { id },
+      data,
+    });
+  }
 
-    async delete(id: number) {
-        return prisma.article.delete({
-            where: { id },
-        });
-    }
+  async delete(id: number) {
+    return this.prisma.article.delete({
+      where: { id },
+    });
+  }
 
-    async updateLikeIncrease(id: number) {
-        return prisma.article.update({
-            where: { id },
-            data: {
-                likeCount: { increment: 1 },
-            },
-            select: {
-                likeCount: true,
-            },
-        });
-    }
+  async updateLikeIncrease(id: number) {
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        likeCount: { increment: 1 },
+      },
+      select: {
+        likeCount: true,
+      },
+    });
+  }
 
-    async updateLikeDecrease(id: number) {
-        return prisma.article.update({
-            where: { id },
-            data: {
-                likeCount: { decrement: 1 },
-            },
-            select: { likeCount: true },
-        });
-    }
+  async updateLikeDecrease(id: number) {
+    return this.prisma.article.update({
+      where: { id },
+      data: {
+        likeCount: { decrement: 1 },
+      },
+      select: { likeCount: true },
+    });
+  }
 }
-
-export default new ArticleRepository();

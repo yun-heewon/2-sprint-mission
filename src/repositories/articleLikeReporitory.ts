@@ -1,40 +1,42 @@
-import prisma from "../lib/prisma";
+import { PrismaClient } from "@prisma/client";
 
 export class ArticleLikeRepository {
+  private prisma: PrismaClient;
 
-    async findManyByUserId(userId: number) {
-        return prisma.articleLike.findMany({
-            where: {
-                userId
-            },
-            select: { articleId: true },
-        });
-    };
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
-    async checkingArticleLikeStatus(userId: number, articleId: number) {
-        return prisma.articleLike.findFirst({
-            where: {
-                userId,
-                articleId
-            },
-        });
-    }
+  async findManyByUserId(userId: number) {
+    return this.prisma.articleLike.findMany({
+      where: {
+        userId,
+      },
+      select: { articleId: true },
+    });
+  }
 
-    async deleteArticleLike(id: number) {
-        return prisma.articleLike.delete({
-            where: { id },
-        });
-    }
+  async checkingArticleLikeStatus(userId: number, articleId: number) {
+    return this.prisma.articleLike.findFirst({
+      where: {
+        userId,
+        articleId,
+      },
+    });
+  }
 
-    async uploadArticleLike(userId: number, articleId: number) {
-        return prisma.articleLike.create({
-            data: {
-                userId,
-                articleId
-            },
-        });
-    }
+  async deleteArticleLike(id: number) {
+    return this.prisma.articleLike.delete({
+      where: { id },
+    });
+  }
 
+  async uploadArticleLike(userId: number, articleId: number) {
+    return this.prisma.articleLike.create({
+      data: {
+        userId,
+        articleId,
+      },
+    });
+  }
 }
-
-export default new ArticleLikeRepository();

@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
-import articleReporitory from "../repositories/articleReporitory";
-import articleLikeReporitory from "../repositories/articleLikeReporitory";
+import { ArticleRepository } from "../repositories/articleReporitory";
 import {
   ArticleListOptions,
   ArticleOutput,
@@ -8,8 +7,19 @@ import {
   CreateArticlesDto,
   PatchArticleDto,
 } from "../dtos/articles.dto";
+import { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
 
 export class ArticleService {
+  private articleRepository: ArticleRepository;
+  private articleLikeRepository: ArticleLikeRepository;
+
+  constructor(
+    articleRepository: ArticleRepository,
+    articleLikeRepository: ArticleLikeRepository
+  ) {
+    this.articleRepository = articleRepository;
+    this.articleLikeRepository = articleLikeRepository;
+  }
   async createArticle(
     userId: number,
     articleData: CreateArticlesDto
@@ -22,7 +32,7 @@ export class ArticleService {
       },
     };
 
-    const newArticle = await articleReporitory.create(createData);
+    const newArticle = await this.articleRepository.create(createData);
 
     return { ...newArticle };
   }
@@ -32,7 +42,7 @@ export class ArticleService {
     userId: number,
     articleData: PatchArticleDto
   ): Promise<ArticleOutput> {
-    const article = await articleReporitory.findById(articleId);
+    const article = await this.articleRepository.findById(articleId);
     if (!article) {
       throw new Error("Article not found");
     }
@@ -46,7 +56,7 @@ export class ArticleService {
       content: articleData.content,
     };
 
-    const updatedArticle = await articleReporitory.update(
+    const updatedArticle = await this.articleRepository.update(
       articleId,
       articleUpdateData
     );
@@ -58,7 +68,7 @@ export class ArticleService {
   }
 
   async deleteArticle(userId: number, articleId: number) {
-    const article = await articleReporitory.findById(articleId);
+    const article = await this.articleRepository.findById(articleId);
     if (!article) {
       throw new Error("Article not found");
     }
@@ -67,7 +77,7 @@ export class ArticleService {
       throw new Error("Unauthorized to delete this article");
     }
 
-    await articleReporitory.delete(articleId);
+    await this.articleRepository.delete(articleId);
 
     return { message: "Article deleted successfully" };
   }
@@ -87,7 +97,7 @@ export class ArticleService {
         break;
     }
 
-    const myArticles = await articleReporitory.findManyByUserId(userId, {
+    const myArticles = await this.articleRepository.findManyByUserId(userId, {
       skip: options.offset,
       take: options.limit,
       orderBy: orderBy,
@@ -120,14 +130,16 @@ export class ArticleService {
     }
 
     // 게시글 목록 가져오기
-    const getArticleList = await articleReporitory.findManyArticles({
+    const getArticleList = await this.articleRepository.findManyArticles({
       skip: options.offset,
       take: options.limit,
       orderBy: orderBy,
     });
 
     //로그인한 사용자가 좋아요 누른 게시글 목록 가져오기
-    const myLikedArticle = await articleLikeReporitory.findManyByUserId(userId);
+    const myLikedArticle = await this.articleLikeRepository.findManyByUserId(
+      userId
+    );
 
     // 좋아요 누른 게시글 ID를 Set으로 변환
     const likedArticleIds = new Set(
@@ -150,5 +162,3 @@ export class ArticleService {
     return articleWithLikedStatus;
   }
 }
-
-export default new ArticleService();

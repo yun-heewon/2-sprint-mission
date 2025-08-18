@@ -1,11 +1,17 @@
-import documentRepository from "../repositories/documentRepository";
+import { DocumentRepository } from "../repositories/documentRepository";
 import path from "path";
 import fs from "fs";
 import { Prisma } from "@prisma/client";
 
 export class DocumentService {
+  private documentRepository: DocumentRepository;
+
+  constructor(documentRepository: DocumentRepository) {
+    this.documentRepository = documentRepository;
+  }
+
   async getDocument(id: number) {
-    const document = await documentRepository.findById(id);
+    const document = await this.documentRepository.findById(id);
 
     if (!document) {
       throw new Error("Document not found");
@@ -38,13 +44,13 @@ export class DocumentService {
       url: data.url,
     };
 
-    const newDocument = await documentRepository.create(createData);
+    const newDocument = await this.documentRepository.create(createData);
     return newDocument;
   }
 
   async deleteDocument(id: number) {
     //삭제할 document 존재 여부 확인
-    const document = await documentRepository.findById(id);
+    const document = await this.documentRepository.findById(id);
     if (!document) {
       throw new Error("Document not found");
     }
@@ -77,12 +83,10 @@ export class DocumentService {
       );
     }
     //db에 있는 문서 정보 삭제
-    const deletedDocument = await documentRepository.delete(id);
+    const deletedDocument = await this.documentRepository.delete(id);
     return {
       message: "Document deleted successfully",
       deletedId: deletedDocument,
     };
   }
 }
-
-export default new DocumentService();

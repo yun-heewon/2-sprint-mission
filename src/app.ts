@@ -6,7 +6,6 @@ import cors from "cors";
 import { NextFunction, Request, Response } from "express";
 import passport from "./lib/passport/index";
 import { HttpError } from "http-errors";
-import indexRouter from "./routes/index";
 import { createSocket } from "./lib/socket";
 import createRouter from "./routes/index";
 
@@ -23,12 +22,12 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use("/files", express.static("uploads"));
 
 const server = createSocket(app);
 const io = server.io;
 
 app.use("/", createRouter(io));
-app.use("/files", express.static("uploads"));
 
 // catch 404 and forward to error handler
 app.use(function (req: Request, res: Response, next: NextFunction) {

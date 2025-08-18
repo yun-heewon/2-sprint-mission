@@ -1,29 +1,32 @@
-import { Prisma } from "@prisma/client";
-import prisma from "../lib/prisma";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 export class ArticleCommentRepository {
+  private prisma: PrismaClient;
 
-    async findById(id: number) {
-        return prisma.articleComment.findUnique({
-            where: { id },
-        });
-    }
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
-    async create(data: Prisma.ArticleCommentCreateInput) {
-        return prisma.articleComment.create({ data });
-    }
+  async findById(id: number) {
+    return this.prisma.articleComment.findUnique({
+      where: { id },
+    });
+  }
 
-    async update(id: number, data: Prisma.ArticleCommentUpdateInput) {
-        return prisma.articleComment.update({
-            where: { id },
-            data,
-        });
-    }
+  async create(data: Prisma.ArticleCommentCreateInput) {
+    return this.prisma.articleComment.create({ data });
+  }
 
-    async delete(id: number) {
-        return prisma.articleComment.delete({
-            where: { id },
-        });
-    }
+  async update(id: number, data: Prisma.ArticleCommentUpdateInput) {
+    return this.prisma.articleComment.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async delete(id: number) {
+    return this.prisma.articleComment.delete({
+      where: { id },
+    });
+  }
 }
-export default new ArticleCommentRepository();
