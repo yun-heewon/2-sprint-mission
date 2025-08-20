@@ -9,6 +9,8 @@ import { UserRepository } from "../repositories/userReporitory";
 import { ArticleRepository } from "../repositories/articleReporitory";
 import prisma from "../lib/prisma";
 import { ArticleCommentRepository } from "../repositories/articleCommentRepository";
+import { NotificationRepository } from "../repositories/notification";
+import { NotificationService } from "../services/notification";
 
 const AtricleCommentRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -16,12 +18,18 @@ const AtricleCommentRouter = (io: SocketIOServer): Router => {
   const userRepository = new UserRepository(prisma);
   const articleRepository = new ArticleRepository(prisma);
   const articleCommentRepository = new ArticleCommentRepository(prisma);
+  const notificationRepository = new NotificationRepository(prisma);
+  const notificationService = new NotificationService(
+    io,
+    notificationRepository
+  );
 
   const articleCommentService = new ArticleCommentService(
     io,
     userRepository,
     articleRepository,
-    articleCommentRepository
+    articleCommentRepository,
+    notificationService
   );
   const articleCommentController = new ArtricleCommentController(
     articleCommentService

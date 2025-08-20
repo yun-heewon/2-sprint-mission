@@ -4,6 +4,7 @@ import { UserRepository } from "../repositories/userReporitory";
 import { CommentDto } from "../dtos/comments.dto";
 import { Server as SocketIOServer } from "socket.io";
 import { ArticleCommentRepository } from "../repositories/articleCommentRepository";
+import { NotificationService } from "./notification";
 
 interface ArticleCommentOutput {
   id: number;
@@ -19,16 +20,19 @@ export class ArticleCommentService {
   private userRepository: UserRepository;
   private articleRepository: ArticleRepository;
   private articleCommentRepository: ArticleCommentRepository;
+  private notificationService: NotificationService;
   constructor(
     io: SocketIOServer,
     userRepository: UserRepository,
     articleRepository: ArticleRepository,
-    articleCommentRepository: ArticleCommentRepository
+    articleCommentRepository: ArticleCommentRepository,
+    notificationService: NotificationService
   ) {
     this.io = io;
     this.userRepository = userRepository;
     this.articleRepository = articleRepository;
     this.articleCommentRepository = articleCommentRepository;
+    this.notificationService = notificationService;
   }
 
   async createArticleComment(
@@ -69,16 +73,14 @@ export class ArticleCommentService {
      */
     // 게시글 작성자와 댓글 작성자가 다른 경우에 알림 전송
     if (article.userId !== userId) {
-      const articleAuthorId = article.userId.toString();
-      const notificationeMessage = `${user.nickname}님이 게시글에 댓글을 남겼습니다.`;
+      const notificationMessage = `${user.nickname}님이 게시글에 댓글을 남겼습니다.`;
 
       // 게시글 작성자에게 알림
-      this.io.to(articleAuthorId).emit("commentNotification", {
-        message: notificationeMessage,
+      await this.notificationService.createNotification(article.userId, {
+        message: notificationMessage,
         type: "COMMENT",
-        senderNickname: user.nickname,
+        isRead: false,
       });
-      console.log(`Notification sent to user ${articleAuthorId}`);
     }
 
     return { ...newArticleComment };

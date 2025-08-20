@@ -4,6 +4,7 @@ import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import { Server as SocketIOServer } from "socket.io";
 import { ArticleRepository } from "../repositories/articleReporitory";
 import { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
+import { userSocketMap } from "../lib/socket";
 
 export class LikeService {
   private io: SocketIOServer;
@@ -48,6 +49,11 @@ export class LikeService {
     let isLiked: boolean;
     let likeCount: number;
 
+    const userSocketId = userSocketMap.get(userId.toString());
+    const userSocket = userSocketId
+      ? this.io.sockets.sockets.get(userSocketId)
+      : null;
+
     if (existingLike) {
       await this.productLikeRepository.deleteProductLike(existingLike.id);
       const updatedProduct = await this.productRepository.updateLikeDecrease(
@@ -56,6 +62,11 @@ export class LikeService {
       message = "Product unliked successfully";
       isLiked = false;
       likeCount = updatedProduct.likeCount;
+
+      if (userSocket) {
+        userSocket.leave(productId.toString());
+        console.log(`${userId} left product room ${productId}`);
+      }
     } else {
       await this.productLikeRepository.uploadProductLike(userId, productId);
       const updatedProduct = await this.productRepository.updateLikeIncrease(
@@ -64,6 +75,10 @@ export class LikeService {
       message = "Product liked successfully";
       isLiked = true;
       likeCount = updatedProduct.likeCount;
+      if (userSocket) {
+        userSocket.join(productId.toString());
+        console.log(`${userId} joined product room ${productId}`);
+      }
     }
     return { message, isLiked, likeCount };
   }
