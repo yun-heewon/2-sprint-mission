@@ -2,10 +2,7 @@ import { Application } from "express";
 import * as http from "http";
 import { Server } from "socket.io";
 
-type priceAlertMessage = {
-  name: string;
-  price: number;
-};
+export const userSocketMap = new Map<string, string>();
 
 export const createSocket = (app: Application) => {
   const server = http.createServer(app);
@@ -17,9 +14,17 @@ export const createSocket = (app: Application) => {
     },
   });
   io.on("connection", (socket) => {
-    socket.on("joinRoom", (userId: string) => {
+    console.log("A user connected");
+
+    socket.on("authenticate", (data) => {
+      const { userId } = data;
+      userSocketMap.set(userId, socket.id);
       socket.join(userId);
-      console.log(`${userId} joined room.`);
+      console.log(`User ${userId} authenticated`);
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`User disconnect: ${socket.id}`);
     });
   });
 
