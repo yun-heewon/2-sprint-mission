@@ -3,8 +3,8 @@ POST http://localhost:3000/users/register
 Content-Type: application/json
 
 {
-  "email": "testuser1@sample.com",
-  "nickname": "testuser1",
+  "email": "testuser3@sample.com",
+  "nickname": "testuser3",
   "password": "123123"
 }
 
@@ -14,7 +14,7 @@ POST http://localhost:3000/users/login
 Content-Type: application/json
 
 {
-  "email": "testuser1@sample.com",
+  "email": "testuser3@sample.com",
   "password": "123123"
 }
 
@@ -49,8 +49,8 @@ POST http://localhost:3000/articles/create
 Content-Type: application/json
 
 {
-  "title": "테스트입니다",
-  "content": "안녕하세요 ^^"
+  "title": "소켓테스트입니다",
+  "content": "테스트 화이팅"
 }
 
 
@@ -94,7 +94,7 @@ PATCH http://localhost:3000/products/update/1
 Content-Type: application/json
 
 {
-    "name": "건조기"
+    "price": 1300000
 }
 
 
@@ -115,7 +115,7 @@ Post http://localhost:3000/articles/comments/3/create
 Content-Type: application/json
 
 {
-"content": "아이패드 노트로 쓰기 좋아요"
+"content": "테스트합니다"
 }
 
 
@@ -169,4 +169,13 @@ POST http://localhost:3000/likes/products/2
 DELETE http://localhost:3000/products/comments/3
 
 
+###
+GET http://localhost:3000/notifications/unread-noti-count
 
+###
+PATCH http://localhost:3000/notifications/1
+Content-Type: application/json
+
+{
+  "isRead" : "true"
+}

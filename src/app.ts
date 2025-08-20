@@ -8,6 +8,7 @@ import passport from "./lib/passport/index";
 import { HttpError } from "http-errors";
 import { createSocket } from "./lib/socket";
 import createRouter from "./routes/index";
+import path from "path";
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+app.use(express.static(path.join(__dirname, "..", "public")));
 app.use("/files", express.static("uploads"));
 
 const server = createSocket(app);
