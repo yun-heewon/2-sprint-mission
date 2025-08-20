@@ -17,6 +17,20 @@ export class ProductLikeRepository {
     });
   }
 
+  async findUsersByProductId(productId: number) {
+    const likedUsers = await this.prisma.productLike.findMany({
+      where: { productId },
+      select: {
+        user: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+    return likedUsers.map((entry) => entry.user);
+  }
+
   async findLikedProductsByUserId(
     userId: number,
     options?: LikedProductFindManyOptions

@@ -8,17 +8,25 @@ import {
   ProductOutput,
   ProductOutputWithLiked,
 } from "../dtos/products.dto";
+import { Server as SocketIOServer } from "socket.io";
+import { NotificationService } from "./notification";
 
 export class ProductService {
+  private io: SocketIOServer;
   private productRepository: ProductRepository;
   private productLikeRepository: ProductLikeRepository;
+  private notificationService: NotificationService;
 
   constructor(
+    io: SocketIOServer,
     productRepository: ProductRepository,
-    productLikeRepository: ProductLikeRepository
+    productLikeRepository: ProductLikeRepository,
+    notificationService: NotificationService
   ) {
+    this.io = io;
     this.productRepository = productRepository;
     this.productLikeRepository = productLikeRepository;
+    this.notificationService = notificationService;
   }
   async createProduct(
     userId: number,
@@ -54,6 +62,9 @@ export class ProductService {
       throw new Error("Unauthorized to update this product");
     }
 
+    const isPriceChanged =
+      productData.price && productData.price !== product.price;
+
     const productUpdateData: Prisma.ProductUpdateInput = {
       name: productData.name,
       description: productData.description,
@@ -67,6 +78,24 @@ export class ProductService {
     );
     if (!updateProduct) {
       throw new Error("Product update failed");
+    }
+
+    if (isPriceChanged) {
+      const likedUsers = await this.productLikeRepository.findUsersByProductId(
+        productId
+      );
+      console.log(
+        `상품 가격 변경 감지. 좋아요 한 사용자 ${likedUsers.length}명에게 알림 전송.`
+      );
+      for (const user of likedUsers) {
+        const notificationMessage = `${updateProduct.name} 상품의 가격이 ${updateProduct.price}원으로 변경되었습니다.`;
+        console.log(`알림 전송 대상: 사용자 ID ${user.id}`);
+        await this.notificationService.createNotification(user.id, {
+          message: notificationMessage,
+          type: "PRODUCT_PRICE_CHANGE",
+          isRead: false,
+        });
+      }
     }
 
     return { ...updateProduct };
