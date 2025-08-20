@@ -72,8 +72,10 @@ export class NotificationController {
       if (!req.user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-
-      const notificationId = parseInt(req.params.id);
+      const notificationId = parseInt(req.params.notificationId);
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "Invalid notification ID" });
+      }
       const updatedNotification = await this.notificationService.markAsRead(
         notificationId
       );

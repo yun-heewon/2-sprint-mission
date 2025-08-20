@@ -8,7 +8,7 @@ import productCommentsRouter from "./productComments";
 import documentsRouter from "./documents";
 import likeRouter from "./like";
 import { Server } from "socket.io";
-import notificationRouter from "./notifications";
+import notificationsRouter from "./notifications";
 
 const createRouter = (io: Server): Router => {
   const router = express.Router();
@@ -21,7 +21,7 @@ const createRouter = (io: Server): Router => {
   router.use("/documents", documentsRouter());
   router.use("/likes", likeRouter(io));
   router.use("/files", express.static("uploads"));
-  router.use("notification", notificationRouter(io));
+  router.use("/notifications", notificationsRouter(io));
 
   router.get("/", (req, res) => {
     res.status(200).json({ message: "welcome!" });

@@ -6,7 +6,7 @@ import { NotificationService } from "../services/notification";
 import { NotificationController } from "../controllers/notificationController";
 import passport from "../lib/passport/index";
 
-const NotificationRouter = (io: SocketIOServer): Router => {
+const NotificationsRouter = (io: SocketIOServer): Router => {
   const router = Router();
 
   const notificationRepository = new NotificationRepository(prisma);
@@ -38,4 +38,4 @@ const NotificationRouter = (io: SocketIOServer): Router => {
   return router;
 };
 
-export default NotificationRouter;
+export default NotificationsRouter;
