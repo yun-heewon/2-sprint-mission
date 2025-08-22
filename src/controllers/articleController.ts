@@ -115,11 +115,8 @@ export class ArticleController {
   //게시글 목록조회 (isLiked 추가)
   getArticleList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
 
-      const user = req.user.id;
+      const user = req.user ? req.user.id: null;
 
       const offset = req.query.offset
         ? parseInt(req.query.offset as string, 10)

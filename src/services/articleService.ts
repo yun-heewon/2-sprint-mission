@@ -115,7 +115,7 @@ export class ArticleService {
   }
 
   async getArticleList(
-    userId: number,
+    userId: number | null,
     options: ArticleListOptions
   ): Promise<ArticleOutputWithLiked[]> {
     let orderBy: Prisma.ArticleOrderByWithRelationInput;
@@ -137,9 +137,12 @@ export class ArticleService {
     });
 
     //로그인한 사용자가 좋아요 누른 게시글 목록 가져오기
-    const myLikedArticle = await this.articleLikeRepository.findManyByUserId(
-      userId
-    );
+    let myLikedArticle: { articleId: number }[] = []
+    if (userId) {
+      myLikedArticle = await this.articleLikeRepository.findManyByUserId(
+        userId
+      )
+    }
 
     // 좋아요 누른 게시글 ID를 Set으로 변환
     const likedArticleIds = new Set(
