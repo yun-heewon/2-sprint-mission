@@ -149,7 +149,7 @@ export class ProductService {
   }
 
   async getProductList(
-    userId: number,
+    userId: number | null,
     options: ProductListOptions
   ): Promise<ProductOutputWithLiked[]> {
     let orderBy: Prisma.ProductOrderByWithRelationInput;
@@ -171,9 +171,12 @@ export class ProductService {
     });
 
     //로그인한 사용자가 좋아요 누른 상품 목록 가져오기
-    const myLikedProduct = await this.productLikeRepository.findManyByUserId(
-      userId
-    );
+    let myLikedProduct: { productId: number}[] = [];
+    if (userId) {
+      myLikedProduct = await this.productLikeRepository.findManyByUserId(
+        userId
+      )
+    };
 
     // 좋아요 누른 상품 ID를 Set으로 변환
     const likedProductIds = new Set(

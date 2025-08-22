@@ -114,11 +114,8 @@ export class ProductController {
   // 상품 목록 조회(isLike 추가)
   getProductList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      if (!req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
 
-      const user = req.user.id;
+      const user = req.user ? req.user.id : null;
 
       const offset = req.query.offset
         ? parseInt(req.query.offset as string, 10)
