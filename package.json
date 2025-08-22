@@ -5,7 +5,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/app.ts"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/app.ts",
+    "test": "dotenv -e .env.test -- prisma generate && dotenv -e .env.test -- jest --runInBand",
+    "coverage": "jest -- coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
