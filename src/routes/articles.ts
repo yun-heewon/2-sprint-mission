@@ -44,7 +44,6 @@ const ArticleRouter = (): Router => {
   );
   router.get(
     "/",
-    passport.authenticate("access-token", { session: false }),
     articleController.getArticleList
   );
 

@@ -55,7 +55,6 @@ const ProductRouter = (io: SocketIOServer): Router => {
   );
   router.get(
     "/",
-    passport.authenticate("access-token", { session: false }),
     productController.getProductList
   );
   router.get(
