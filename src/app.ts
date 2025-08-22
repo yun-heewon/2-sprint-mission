@@ -60,6 +60,4 @@ app.use(function (
   res.status(statusCode).json(errorResponse);
 });
 
-server.server.listen(3000, () => console.log("Server Started"));
-
-export default server;
+export { app, server };
