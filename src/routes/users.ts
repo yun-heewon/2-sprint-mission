@@ -1,9 +1,9 @@
 import express, { Router } from "express";
 const router = express.Router();
 import passport from "../lib/passport/index";
-import upload from "../lib/upload";
+import upload from "../middleware/upload";
 import { refreshTokens } from "../lib/token";
-import { validateDto } from "../lib/validator";
+import { validateDto } from "../middleware/validator";
 import { CreateUserDto, PatchUserDto } from "../dtos/users.dto";
 import { UserService } from "../services/userService";
 import { UserController } from "../controllers/userController";

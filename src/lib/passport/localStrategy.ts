@@ -16,12 +16,12 @@ export const localStrategy = new LocalStrategy({
     ) {
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-            return done(null, false);
+            return done(null, false, { message: 'Incorrect email or password' });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
-            return done(null, false);
+            return done(null, false, { message: 'Incorrect email or password.' });
         }
 
         return done(null, user)

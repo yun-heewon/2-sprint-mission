@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "../lib/passport/index";
 import { CreateArticlesDto, PatchArticleDto } from "../dtos/articles.dto";
-import { validateDto } from "../lib/validator";
+import { validateDto } from "../middleware/validator";
 import { ArticleService } from "../services/articleService";
 import { ArticleController } from "../controllers/articleController";
 import { ArticleRepository } from "../repositories/articleReporitory";

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import upload from "../lib/upload";
+import upload from "../middleware/upload";
 import { DocumentService } from "../services/documentService";
 import { DocumentController } from "../controllers/documentController";
 import { DocumentRepository } from "../repositories/documentRepository";

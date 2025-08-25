@@ -1,6 +1,6 @@
 import { Router } from "express";
 import passport from "../lib/passport/index";
-import { validateDto } from "../lib/validator";
+import { validateDto } from "../middleware/validator";
 import { CommentDto } from "../dtos/comments.dto";
 import { ArtricleCommentController } from "../controllers/articleCommentController";
 import { ArticleCommentService } from "../services/articleCommentService";

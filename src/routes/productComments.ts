@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "../lib/passport/index";
 import { CommentDto } from "../dtos/comments.dto";
-import { validateDto } from "../lib/validator";
+import { validateDto } from "../middleware/validator";
 import { Server as SocketIOServer } from "socket.io";
 import { ProductCommentService } from "../services/productCommentService";
 import { ProductCommentController } from "../controllers/productCommentController";

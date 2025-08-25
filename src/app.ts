@@ -45,8 +45,16 @@ app.use(function (
   next: NextFunction
 ) {
   const isDevelopment = req.app.get("env") === "development";
-  const statusCode = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
+  let statusCode = err.status || err.statusCode || 500;
+  let message = err.message || "Internal Server Error";
+
+  if (message === "Product not found") {
+    statusCode = 404;
+  } else if (message === "Unauthorized to update this product" || 'Unauthorized to delete this product') {
+    statusCode = 403;
+  } else if (message === "Unauthorized") {
+    statusCode = 401;
+  }
 
   console.error(err);
 
