@@ -4,7 +4,7 @@ import prisma from "../src/lib/prisma";
 import TestAgent from "supertest/lib/agent";
 
 let agent: TestAgent;
-let unauthorizedAgent: TestAgent;
+let anotherAgent: TestAgent;
 let testUserId: number;
 let productId: number;
 let userAProductId: number;
@@ -27,9 +27,9 @@ beforeAll(async () => {
     await prisma.product.deleteMany();
     await prisma.user.deleteMany();
 
-    // agent 및 unauthorizedAgent 초기화
+    // agent 및 anotherAgent 초기화
     agent = request.agent(app);
-    unauthorizedAgent = request.agent(app);
+    anotherAgent = request.agent(app);
 
     // 사용자 1 등록 및 로그인
     await agent.post('/users/register').send({
@@ -44,12 +44,12 @@ beforeAll(async () => {
     testUserId = user1Login.body.user.id;
 
     // 사용자 2 등록 및 로그인 (권한 없음 테스트)
-    await unauthorizedAgent.post('/users/register').send({
+    await anotherAgent.post('/users/register').send({
         email: email2,
         nickname: nickname2,
         password: password2,
     });
-    await unauthorizedAgent.post('/users/login').send({
+    await anotherAgent.post('/users/login').send({
         email: email2,
         password: password2,
     });
@@ -128,7 +128,7 @@ describe('PATCH/products/:id', () => {
     });
 
     test('권한 없는 사용자의 수정', async () => {
-        const response = await unauthorizedAgent.patch(`/products/update/${productId}`).send({
+        const response = await anotherAgent.patch(`/products/update/${productId}`).send({
             name: 'test상품',
         });
         expect(response.statusCode).toBe(403);
@@ -143,6 +143,23 @@ describe('PATCH/products/:id', () => {
         expect(response.body.message).toEqual('Product updated successfully')
         expect(response.body.product.name).toEqual('test상품입니다');
     });
+
+    test('찜한 상품의 가격 변동 시 알람메세지 발생되어야 함', async () => {
+        await anotherAgent.post(`/likes/products/${productId}`);
+
+        const response = await agent.patch(`/products/update/${productId}`).send({
+            price: 8000,
+        });
+        expect(response.statusCode).toBe(200);
+        expect(response.body.message).toEqual('Product updated successfully')
+        expect(response.body.product.price).toBe(8000);
+        
+        const notification = await anotherAgent.get('/notifications');
+        expect(notification.body.length).toBe(1);
+        expect(notification.statusCode).toBe(200);
+        expect(notification.body[0].message).toContain('상품의 가격이');
+        expect(notification.body[0].message).toContain('변경되었습니다.');
+    })
 });
 
 /*
@@ -168,7 +185,7 @@ describe('DELETE/products/:id', () => {
     });
 
     test('권한 없는 사용자의 삭제', async () => {
-        const response = await unauthorizedAgent.delete(`/products/${productId}`);
+        const response = await anotherAgent.delete(`/products/${productId}`);
         expect(response.statusCode).toBe(403);
         expect(response.body.message).toEqual('Unauthorized to delete this product');
         
@@ -196,7 +213,7 @@ describe('GET/products/my-product', () => {
         });
         userAProductId = product1.body.product.id
 
-        const product2 = await unauthorizedAgent.post('/products/create').send({
+        const product2 = await anotherAgent.post('/products/create').send({
             name: 'B유저의 물품',
             price,
             description,
@@ -245,7 +262,7 @@ describe('GET/products/me/liked-products', () => {
         });
         userAProductId = product1.body.product.id
 
-        const product2 = await unauthorizedAgent.post('/products/create').send({
+        const product2 = await anotherAgent.post('/products/create').send({
             name: 'B유저의 물품',
             price,
             description,
@@ -296,7 +313,7 @@ describe('GET/products/인증 필요', () => {
         });
         userAProductId = productA.body.product.id;
 
-        const productB = await unauthorizedAgent.post('/products/create').send({
+        const productB = await anotherAgent.post('/products/create').send({
             name: 'B유저의 물품',
             price,
             description,
@@ -338,7 +355,7 @@ describe('GET/products/인증 불필요', () => {
             tags,
         });
 
-        const product2 = await unauthorizedAgent.post('/products/create').send({
+        const product2 = await anotherAgent.post('/products/create').send({
             name: 'B유저의 물품',
             price,
             description,
