@@ -3,7 +3,7 @@ const router = express.Router();
 import passport from "../lib/passport/index";
 import { Server as SocketIOServer } from "socket.io";
 import { CreateProductDto, PatchProductDto } from "../dtos/products.dto";
-import { validateDto } from "../lib/validator";
+import { validateDto } from "../middleware/validator";
 import { ProductService } from "../services/productService";
 import { ProductController } from "../controllers/productController";
 import { ProductRepository } from "../repositories/productRepository";
@@ -11,6 +11,7 @@ import prisma from "../lib/prisma";
 import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import { NotificationRepository } from "../repositories/notification";
 import { NotificationService } from "../services/notification";
+import { optionalAuth } from "../middleware/optionalAuth";
 
 const ProductRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -55,6 +56,7 @@ const ProductRouter = (io: SocketIOServer): Router => {
   );
   router.get(
     "/",
+    optionalAuth,
     productController.getProductList
   );
   router.get(
