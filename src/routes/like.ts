@@ -9,6 +9,7 @@ import { ProductRepository } from "../repositories/productRepository";
 import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import { ArticleRepository } from "../repositories/articleReporitory";
 import { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
+import { Auth } from "../middleware/Auth";
 
 const LikeRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -31,12 +32,12 @@ const LikeRouter = (io: SocketIOServer): Router => {
 
   router.post(
     "/products/:productId",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     likeController.uploadLikeProduct
   );
   router.post(
     "/articles/:articleId",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     likeController.uploadLikeArticle
   );
 

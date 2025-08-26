@@ -12,6 +12,7 @@ import { ProductLikeRepository } from "../repositories/productLikeRepository";
 import { NotificationRepository } from "../repositories/notification";
 import { NotificationService } from "../services/notification";
 import { optionalAuth } from "../middleware/optionalAuth";
+import { Auth } from "../middleware/Auth";
 
 const ProductRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -34,24 +35,24 @@ const ProductRouter = (io: SocketIOServer): Router => {
 
   router.post(
     "/create",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CreateProductDto),
     productController.createProduct
   );
   router.patch(
     "/update/:id",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(PatchProductDto),
     productController.updateProduct
   );
   router.delete(
     "/:id",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     productController.deleteProduct
   );
   router.get(
     "/my-product",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     productController.getMyProductList
   );
   router.get(
@@ -61,7 +62,7 @@ const ProductRouter = (io: SocketIOServer): Router => {
   );
   router.get(
     "/me/liked-products",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     productController.getLikedProductList
   );
   return router;

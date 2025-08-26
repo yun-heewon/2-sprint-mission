@@ -9,6 +9,7 @@ import { UserService } from "../services/userService";
 import { UserController } from "../controllers/userController";
 import { UserRepository } from "../repositories/userReporitory";
 import prisma from "../lib/prisma";
+import { Auth } from "../middleware/Auth";
 
 const UserRouter = (): Router => {
   const router = Router();
@@ -19,7 +20,7 @@ const UserRouter = (): Router => {
 
   router.get(
     "/me",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     userController.getUser
   );
   router.post(
@@ -30,7 +31,7 @@ const UserRouter = (): Router => {
   );
   router.post(
     "/login",
-    passport.authenticate("local", { session: false }),
+    Auth,
     userController.login
   );
   router.post(
@@ -40,13 +41,13 @@ const UserRouter = (): Router => {
   );
   router.patch(
     "/me",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(PatchUserDto),
     userController.patchUser
   );
   router.delete(
     "/:id",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     userController.deleteUser
   );
   router.post("/logout", userController.logout);

@@ -7,6 +7,8 @@ import { ArticleController } from "../controllers/articleController";
 import { ArticleRepository } from "../repositories/articleReporitory";
 import { ArticleLikeRepository } from "../repositories/articleLikeReporitory";
 import prisma from "../lib/prisma";
+import { optionalAuth } from "../middleware/optionalAuth";
+import { Auth } from "../middleware/Auth";
 
 const ArticleRouter = (): Router => {
   const router = Router();
@@ -22,28 +24,29 @@ const ArticleRouter = (): Router => {
 
   router.post(
     "/create",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CreateArticlesDto),
     articleController.createArticle
   );
   router.patch(
     "/update/:id",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(PatchArticleDto),
     articleController.updateArticle
   );
   router.delete(
     "/:id",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     articleController.deleteArticle
   );
   router.get(
     "/my-article",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     articleController.getMyArticleList
   );
   router.get(
     "/",
+    optionalAuth,
     articleController.getArticleList
   );
 

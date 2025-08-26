@@ -9,6 +9,7 @@ import { UserRepository } from "../repositories/userReporitory";
 import prisma from "../lib/prisma";
 import { ProductRepository } from "../repositories/productRepository";
 import { ProductCommentRepository } from "../repositories/productCommentRepository";
+import { Auth } from "../middleware/Auth";
 
 const ProductCommentRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -29,19 +30,19 @@ const ProductCommentRouter = (io: SocketIOServer): Router => {
 
   router.post(
     "/:productId/create",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CommentDto),
     productCommentController.createProductComment
   );
   router.patch(
     "/:commentId/update",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CommentDto),
     productCommentController.updateProductComment
   );
   router.delete(
     "/:commentId",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     productCommentController.deleteProductComment
   );
 

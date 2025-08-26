@@ -11,6 +11,7 @@ import prisma from "../lib/prisma";
 import { ArticleCommentRepository } from "../repositories/articleCommentRepository";
 import { NotificationRepository } from "../repositories/notification";
 import { NotificationService } from "../services/notification";
+import { Auth } from "../middleware/Auth";
 
 const AtricleCommentRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -37,19 +38,19 @@ const AtricleCommentRouter = (io: SocketIOServer): Router => {
 
   router.post(
     "/:articleId/create",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CommentDto),
     articleCommentController.createArticleComment
   );
   router.patch(
     "/:commentId/update",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     validateDto(CommentDto),
     articleCommentController.updateArticleComment
   );
   router.delete(
     "/:commentId",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     articleCommentController.deleteArticleComment
   );
 

@@ -5,6 +5,7 @@ import prisma from "../lib/prisma";
 import { NotificationService } from "../services/notification";
 import { NotificationController } from "../controllers/notificationController";
 import passport from "../lib/passport/index";
+import { Auth } from "../middleware/Auth";
 
 const NotificationsRouter = (io: SocketIOServer): Router => {
   const router = Router();
@@ -20,19 +21,19 @@ const NotificationsRouter = (io: SocketIOServer): Router => {
 
   router.get(
     "/",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     notificationController.getNotifications
   );
 
   router.get(
     "/unread-noti-count",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     notificationController.getUnreadCount
   );
 
   router.patch(
     "/:notificationId",
-    passport.authenticate("access-token", { session: false }),
+    Auth,
     notificationController.markAsRead
   );
   return router;
