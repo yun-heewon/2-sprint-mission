@@ -48,14 +48,14 @@ app.use(function (
   let statusCode = err.status || err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
-  if (message === "Product not found") {
-    statusCode = 404;
-  } else if (message === "Unauthorized to update this product" || 'Unauthorized to delete this product') {
-    statusCode = 403;
-  } else if (message === "Unauthorized") {
-    statusCode = 401;
-  }
-
+if (message === "Unauthorized") {
+  statusCode = 401;
+ } else if (message.includes("not found")) {
+  statusCode = 404;
+ } else if (message.includes("Unauthorized to update") || message.includes("Unauthorized to delete")) {
+  statusCode = 403;
+}
+  
   console.error(err);
 
   const errorResponse: { message: string; stack?: string } = {

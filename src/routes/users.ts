@@ -31,7 +31,7 @@ const UserRouter = (): Router => {
   );
   router.post(
     "/login",
-    Auth,
+    passport.authenticate("local", { session: false }),
     userController.login
   );
   router.post(
