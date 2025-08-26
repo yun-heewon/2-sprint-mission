@@ -20,7 +20,7 @@ const name = 'test 상품';
 const description = 'test 설명';
 const price = 10000;
 const tags = ['test태그1', 'test태그2'];
-const testProductId = 9999;
+const testProductId = 999999;
 
 beforeAll(async () => {
     await prisma.notification.deleteMany();
@@ -84,15 +84,59 @@ describe('POST/products/create', () => {
         expect(count).toEqual(1);
     });
     
-    test('req.bdoy 불충족', async () => {
+    test('description 불충족', async () => {
         const response = await agent.post('/products/create').send({
             name,
             price,
-            tags
+            tags,
         });
         expect(response.statusCode).toBe(400);
         expect(response.body.message).toEqual("Validation failed");
         expect(response.body.errors).toContain("description should not be empty");
+    });
+
+    test('name 불충족', async () => {
+        const response = await agent.post('/products/create').send({
+            price,
+            tags,
+            description,
+        });
+        expect(response.statusCode).toBe(400);
+        expect(response.body.message).toEqual("Validation failed");
+        expect(response.body.errors).toContain("name should not be empty");
+    });
+
+    test('price 불충족', async () => {
+        const response = await agent.post('/products/create').send({
+            name,
+            description,
+            tags,
+        });
+        expect(response.statusCode).toBe(400);
+        expect(response.body.message).toEqual("Validation failed");
+        expect(response.body.errors).toContain("price should not be empty");
+    });
+
+    test('tags 불충족', async () => {
+        const response = await agent.post('/products/create').send({
+            name,
+            description,
+            price,
+        });
+        expect(response.statusCode).toBe(400);
+        expect(response.body.message).toEqual("Validation failed");
+        expect(response.body.errors).toContain("tags should not be empty");
+    });
+
+    test('로그인하지 않으면 생성할 수 없어야 함', async () => {
+        const response = await request(app).post('/products/create').send({
+            name,
+            description,
+            price,
+            tags,
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toEqual('로그인이 필요합니다.');
     });
 });
 
@@ -154,6 +198,14 @@ describe('PATCH/products/update/:id', () => {
         expect(notification.body[0].message).toContain('상품의 가격이');
         expect(notification.body[0].message).toContain('변경되었습니다.');
     })
+
+    test('로그인하지 않으면 수정할 수 없어야 함', async () => { 
+        const response = await request(app).patch(`/products/update/${productId}`).send({
+            name: 'test상품입니다',
+        });
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toEqual('로그인이 필요합니다.');
+    })
 });
 
 /*
@@ -189,6 +241,12 @@ describe('DELETE/products/:id', () => {
         const response = await agent.delete(`/products/${productId}`);
         expect(response.statusCode).toBe(204);
         expect(response.body).toEqual({});
+    });
+
+    test('로그인하지 않으면 삭제할 수 없어야 함', async() => {
+        const response = await request(app).delete(`/products/${productId}`);
+        expect(response.statusCode).toBe(401);
+        expect(response.body.message).toEqual('로그인이 필요합니다.')
     });
 });
 
@@ -332,6 +390,15 @@ describe('GET/products, 인증 필요', () => {
         expect(productB.name).toEqual('B유저의 물품');
         expect(productB.isLiked).toBe(true);
     });
+
+    test('상품이 없을 때는 빈 배열을 반환해야 함', async () => {
+        await prisma.product.deleteMany();
+
+        const response = await agent.get("/products");
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toEqual([]);
+    })
+
 });
 
 /*
@@ -348,6 +415,7 @@ describe('GET/products, 인증 불필요', () => {
             description,
             tags,
         });
+        userAProductId = product1.body.product.id;
 
         const product2 = await anotherAgent.post('/products/create').send({
             name: 'B유저의 물품',
@@ -355,6 +423,7 @@ describe('GET/products, 인증 불필요', () => {
             description,
             tags,
         });
+        userBProductId = product2.body.product.id;
     });
 
     test('로그인하지 않은 사용자도 상품 목록 확인 가능해야함.', async () => {
@@ -363,15 +432,12 @@ describe('GET/products, 인증 불필요', () => {
         expect(response.body).toBeInstanceOf(Array);
         expect(response.body.length).toBe(2);
 
-        const products = response.body[0];
-        expect(products.isLiked).toBe(false);
+        const response2 = await request(app).post(`/likes/products/${userBProductId}`);
+        expect(response2.statusCode).toBe(401);
+
+        const product1 = response.body[0];
+        expect(product1.isLiked).toBe(false);
+        const product2 = response.body[1];
+        expect(product2.isLiked).toBe(false);
     });
-
-    test('상품이 없을 때는 빈 배열을 반환해야 함', async () => {
-        await prisma.product.deleteMany();
-
-        const response = await request(app).get("/products");
-        expect(response.statusCode).toBe(200);
-        expect(response.body).toEqual([]);
-    })
 });

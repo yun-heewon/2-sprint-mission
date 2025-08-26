@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsDefined, IsInt, IsNotEmpty, IsOptional, IsString, Length } from "class-validator";
 
 export class CreateProductDto {
     @IsNotEmpty()
@@ -11,12 +11,14 @@ export class CreateProductDto {
     @Length(1, 1000)
     description: string = '';
     
+    @IsDefined()
     @IsNotEmpty()
     @IsInt()
-    price: number = 0;
+    price!: number;
     
-    @IsNotEmpty()
+    @IsDefined()
     @IsArray()
+    @ArrayNotEmpty()
     @IsString({ each: true })
     tags: string[] = [];
 }

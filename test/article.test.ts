@@ -2,7 +2,6 @@ import request from "supertest";
 import { app } from "../src/app";
 import prisma from "../src/lib/prisma";
 import TestAgent from "supertest/lib/agent";
-import { response } from "express";
 
 let agent: TestAgent;
 let anotherAgent: TestAgent;
@@ -19,7 +18,7 @@ const nickname2 = "test2";
 const password2 = "password";
 const title = 'test 게시글 제목';
 const content = 'test 게시글 본문입니다.';
-const testArticletId = 9999;
+const testArticletId = 999999;
 
 beforeAll(async () => {
     await prisma.notification.deleteMany();
