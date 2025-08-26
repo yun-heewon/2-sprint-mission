@@ -230,7 +230,7 @@ describe('GET/products/my-product', () => {
     test('로그인하지 않은 사용자의 접근', async () => {
         const response = await request(app).get('/products/my-product');
         expect(response.statusCode).toBe(401);
-        expect(response.body.message).toBeUndefined(); 
+        expect(response.body.message).toEqual('로그인이 필요합니다.'); 
     });
 
     test('등록한 상품이 없을 때 빈 배열을 반환해야 함', async () => { 
@@ -279,9 +279,9 @@ describe('GET/products/me/liked-products', () => {
     });
 
     test('로그인하지 않은 사용자의 접근', async () => {
-        const response = await request(app).get('/products/me/liked-products')
+        const response = await request(app).get('/products/me/liked-products');
         expect(response.statusCode).toBe(401);
-        expect(response.body.message).toBeUndefined();
+        expect(response.body.message).toEqual('로그인이 필요합니다.');
     });
 
     test('좋아요한 상품이 없을 때 빈 배열을 반환해야 함', async () => {
