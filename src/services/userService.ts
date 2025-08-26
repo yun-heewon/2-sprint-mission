@@ -31,7 +31,7 @@ export class UserService {
     const existingEmail = await this.userRepository.findByEmail(userData.email);
     if (existingEmail) {
       throw new Error(
-        "This Email already exist! Please Change to something else"
+        "Email already exist! Please Change to something else"
       );
     }
 
@@ -41,7 +41,7 @@ export class UserService {
     );
     if (existingNickname) {
       throw new Error(
-        "This Nickname already exist! Please Change to something else"
+        "Nickname already exist! Please Change to something else"
       );
     }
 

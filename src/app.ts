@@ -3,7 +3,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import cors from "cors";
-import { NextFunction, Request, Response } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import passport from "./lib/passport/index";
 import { HttpError } from "http-errors";
 import { createSocket } from "./lib/socket";
@@ -54,7 +54,9 @@ if (message === "Unauthorized") {
   statusCode = 404;
  } else if (message.includes("Unauthorized to update") || message.includes("Unauthorized to delete")) {
   statusCode = 403;
-}
+} else if (message.includes("already exist!")) {
+  statusCode = 409;
+ }
   
   console.error(err);
 

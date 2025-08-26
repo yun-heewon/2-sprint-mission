@@ -66,7 +66,7 @@ export class UserController {
         error.message ===
           "Email already exist! Please Change to something else" ||
         error.message ===
-          "User nickname already exist! Please Change to something else"
+          "Nickname already exist! Please Change to something else"
       ) {
         return res.status(409).json({ message: error.message });
       }
@@ -122,7 +122,7 @@ export class UserController {
 
       res
         .status(200)
-        .json({ message: " User updated successfully!", user: updatedUser });
+        .json({ message: "User updated successfully!", user: updatedUser });
     } catch (error) {
       console.error("Error updating user:", error);
       if (error instanceof Error) {
