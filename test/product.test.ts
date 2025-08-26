@@ -41,7 +41,7 @@ beforeAll(async () => {
         email,
         password,
     });
-    testUserId = user1Login.body.user.id;
+    testUserId = user1Login.body.userId;
 
     // 사용자 2 등록 및 로그인 (권한 없음 테스트)
     await anotherAgent.post('/users/register').send({
@@ -63,15 +63,9 @@ afterAll(async () => {
 * POST/product API 
 * 새로운 상품 생성(인증 필요)
 */
-describe('POST/products', () => {
+describe('POST/products/create', () => {
 
     beforeEach(async () => { 
-        const loginUser = await agent.post('/users/login').send({
-            email,
-            password
-        });
-        testUserId = loginUser.body.userId
-
         await prisma.product.deleteMany();
     })
     
@@ -106,7 +100,7 @@ describe('POST/products', () => {
 * PATCH/product API 
 * 상품 일부 수정(인증 필요)
 */
-describe('PATCH/products/:id', () => {
+describe('PATCH/products/update/:id', () => {
 
     beforeEach(async () => {
         await prisma.product.deleteMany();
@@ -301,7 +295,7 @@ describe('GET/products/me/liked-products', () => {
 * GET/product API 
 * 전체 상품 목록(인증 필요)
 */
-describe('GET/products/인증 필요', () => {
+describe('GET/products, 인증 필요', () => {
     beforeEach(async () => {
         await prisma.product.deleteMany();
 
@@ -344,7 +338,7 @@ describe('GET/products/인증 필요', () => {
 * GET/product API 
 * 전체 상품 목록(인증 불필요)
 */
-describe('GET/products/인증 불필요', () => {
+describe('GET/products, 인증 불필요', () => {
     beforeEach(async () => {
         await prisma.product.deleteMany();
 
