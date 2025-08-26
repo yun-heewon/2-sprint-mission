@@ -18,7 +18,7 @@ const nickname2 = "test2";
 const password2 = "password";
 const title = 'test 게시글 제목';
 const content = 'test 게시글 본문입니다.';
-const testArticletId = 999999;
+const testArticletId = 9999;
 
 beforeAll(async () => {
     await prisma.notification.deleteMany();
@@ -304,7 +304,7 @@ describe('GET/articles, 인증필요', () => {
 * GET/article API 
 * 전체 게시글 목록(인증 불팔요)
 */
-describe('GET/articles, 불인증필요', () => {
+describe('GET/articles, 인증 불필요', () => {
     beforeEach(async () => {
         await prisma.article.deleteMany();
         const article1 = await agent.post('/articles/create').send({
