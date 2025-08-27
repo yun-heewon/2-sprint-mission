@@ -7,7 +7,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
     "test": "dotenv -e .env.test -- prisma generate && dotenv -e .env.test -- jest --runInBand",
-    "coverage": "jest -- coverage"
+    "coverage": "npm test -- --coverage"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",
