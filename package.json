@@ -53,6 +53,7 @@
     "class-transformer": "^0.5.1",
     "dotenv-cli": "^10.0.0",
     "jest": "^30.0.5",
+    "jest-mock-extended": "^4.0.0",
     "nodemon": "^3.1.10",
     "prisma": "^6.8.2",
     "supertest": "^7.1.4",
