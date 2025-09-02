@@ -10,8 +10,11 @@
     "coverage": "npm test -- --coverage"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.879.0",
     "@prisma/client": "^6.8.2",
+    "@types/aws-sdk": "^0.0.42",
     "@types/express": "^4.17.21",
+    "aws-sdk": "^2.1692.0",
     "bcrypt": "^6.0.0",
     "class-validator": "^0.14.2",
     "cookie-parser": "~1.4.4",
@@ -29,7 +32,8 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "socket.io": "^4.8.1",
-    "superstruct": "^2.0.2"
+    "superstruct": "^2.0.2",
+    "tslib": "^2.8.1"
   },
   "description": "",
   "main": "app.js",
@@ -46,6 +50,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
+    "@types/multer-s3": "^3.0.3",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
@@ -54,6 +59,7 @@
     "dotenv-cli": "^10.0.0",
     "jest": "^30.0.5",
     "jest-mock-extended": "^4.0.0",
+    "multer-s3": "^3.0.1",
     "nodemon": "^3.1.10",
     "prisma": "^6.8.2",
     "supertest": "^7.1.4",
