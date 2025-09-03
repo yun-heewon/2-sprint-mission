@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   })
 );
@@ -26,6 +26,7 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname, "..", "public")));
 app.use("/files", express.static("uploads"));
+app.use(express.static('public'));
 
 const server = createSocket(app);
 const io = server.io;
