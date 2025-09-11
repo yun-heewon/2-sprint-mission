@@ -31,7 +31,7 @@ jobs:
 
       - name: Prisma Migrate
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: postgresql://testuser:testpassword@127.0.0.1:5432/testdb
         run: npx prisma migrate deploy
 
       - name: Run typecheck
@@ -48,5 +48,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
           AWS_REGION: ${{ secrets.AWS_REGION }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: postgresql://testuser:testpassword@127.0.0.1:5432/testdb
         run: npm test
