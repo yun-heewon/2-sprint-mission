@@ -30,7 +30,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
-          env: 
+          env:
             DATABASE_URL: ${{ secrets.AWS_DATABASE_URL }}
           script: |
             cd 2-sprint-mission/
