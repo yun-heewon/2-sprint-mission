@@ -20,10 +20,20 @@ jobs:
       - name: Install dependencies
         run: npm ci 
 
-      - name: Build
+      - name: Build Project
         run: npm run build
 
-      - name: Deploy to EC2
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "./dist/,./node_modules/,./package.json,./package-lock.json"
+          target: "~/2-sprint-mission/"
+
+      - name: Run Prisma Migrate and Restart PM2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -34,8 +44,5 @@ jobs:
             DATABASE_URL: ${{ secrets.AWS_DATABASE_URL }}
           script: |
             cd 2-sprint-mission/
-            git pull origin main
-            npm run migrate deploy
-            npm ci
-            npm run build
+            npx prisma migrate deploy
             pm2 restart all
