@@ -5,7 +5,7 @@
 ### Github Actions 활용
 - [x] 브랜치에 pull request가 발생하면 테스트를 실행하는 액션을 구현해 주세요.
 - [x] main 브랜치에 push가 발생하면 AWS 배포를 진행하는 액션을 구현해 주세요.
-- [ ] 개인 Github 리포지터리에서 Actions 동작을 확인해 보세요.
+- [x] 개인 Github 리포지터리에서 Actions 동작을 확인해 보세요.
 
 ### Docker 이미지 만들기
 다음을 만족하는 Dockerfile과 docker-compose.yaml을 작성해 주세요.
