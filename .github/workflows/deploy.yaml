@@ -20,11 +20,6 @@ jobs:
       - name: Install dependencies
         run: npm ci 
 
-      - name: Prisma Migrate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma migrate deploy
-
       - name: Build
         run: npm run build
 
@@ -35,10 +30,12 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
+          env: 
+            DATABASE_URL: ${{ secrets.AWS_DATABASE_URL }}
           script: |
             cd 2-sprint-mission/
             git pull origin main
+            npm run migrate deploy
             npm ci
-            npm run migrate
             npm run build
             pm2 restart all
