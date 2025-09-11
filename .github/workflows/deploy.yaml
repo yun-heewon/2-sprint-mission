@@ -42,7 +42,7 @@ jobs:
           port: 22
           env:
             DATABASE_URL: ${{ secrets.AWS_DATABASE_URL }}
-        script: |
-          cd 2-sprint-mission/
-          npx prisma migrate deploy
-          pm2 restart all
+          script: |
+            cd 2-sprint-mission/
+            npx prisma migrate deploy
+            pm2 restart all
